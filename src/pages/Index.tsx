@@ -9,6 +9,7 @@ const levelDescriptions: Record<LessonLevel, string> = {
   elementary: "Build your vocabulary with weather, emotions, shopping, and more.",
   "pre-intermediate": "Dive into tenses, geography, and complex sentence structures.",
   intermediate: "Master cases, verb aspects, cultural topics, and natural conversation.",
+  "upper-intermediate": "Perfect your fluency with business, idioms, and advanced topics.",
 };
 
 const features = [
