@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { BookOpen, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-const levels: LessonLevel[] = ["beginner", "elementary", "pre-intermediate", "intermediate"];
+const levels: LessonLevel[] = ["beginner", "elementary", "pre-intermediate", "intermediate", "upper-intermediate"];
 
 const Lessons = () => {
   const [activeLevel, setActiveLevel] = useState<LessonLevel | "all">("all");
@@ -20,7 +20,7 @@ const Lessons = () => {
             Serbian <span className="text-gradient-gold">Lessons</span>
           </h1>
           <p className="mt-3 text-lg text-muted-foreground">
-            {lessons.length} lessons from beginner to intermediate
+            {lessons.length} lessons from beginner to upper-intermediate
           </p>
         </motion.div>
 
