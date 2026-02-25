@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { QuizQuestion } from "@/data/lessons";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, ArrowRight, RotateCcw, Trophy, Lightbulb } from "lucide-react";
@@ -21,22 +21,27 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [scriptMode, setScriptMode] = useState<"both" | "cyrillic" | "latin">("both");
 
   const question = questions[currentIndex];
   const progress = ((currentIndex) / questions.length) * 100;
+
+  const normalizeAnswer = (ans: string) => ans.trim().toLowerCase().replace(/[.!?,;:]/g, "").replace(/\s+/g, " ");
 
   const checkAnswer = () => {
     let correct = false;
     if (question.type === "multiple-choice") {
       correct = parseInt(selectedOption) === question.correctIndex;
     } else if (question.type === "fill-blank") {
-      correct = textAnswer.trim().toLowerCase() === question.answer.toLowerCase();
+      const userAns = normalizeAnswer(textAnswer);
+      correct = normalizeAnswer(question.answer) === userAns ||
+        (question.acceptAlternatives || []).some(alt => normalizeAnswer(alt) === userAns);
     } else if (question.type === "translate") {
-      const userAns = textAnswer.trim().toLowerCase();
+      const userAns = normalizeAnswer(textAnswer);
       correct =
-        userAns === question.answer.toLowerCase() ||
+        normalizeAnswer(question.answer) === userAns ||
         (question.acceptAlternatives || []).some(
-          (alt) => userAns === alt.toLowerCase()
+          (alt) => normalizeAnswer(alt) === userAns
         );
     }
     setIsCorrect(correct);
@@ -99,15 +104,43 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
     );
   }
 
+  const getCorrectAnswerDisplay = () => {
+    if (question.type === "multiple-choice") {
+      return question.options[question.correctIndex];
+    }
+    const answer = question.answer;
+    const alts = ("acceptAlternatives" in question ? question.acceptAlternatives : []) || [];
+    if (alts.length > 0) {
+      return `${answer} (also accepted: ${alts.join(", ")})`;
+    }
+    return answer;
+  };
+
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      {/* Progress */}
+      {/* Progress & Script toggle */}
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
           <span>Question {currentIndex + 1} of {questions.length}</span>
           <span>Score: {score}/{currentIndex + (showResult ? 1 : 0)}</span>
         </div>
         <Progress value={progress} className="h-2" />
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground mr-1">Answer in:</span>
+          {(["both", "cyrillic", "latin"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setScriptMode(mode)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                scriptMode === mode
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {mode === "both" ? "Either Script" : mode === "cyrillic" ? "Cyrillic" : "Latin"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Question */}
@@ -125,7 +158,9 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
               ? "Multiple Choice"
               : question.type === "fill-blank"
               ? "Fill in the Blank"
-              : "Translate"}
+              : question.type === "translate"
+              ? "Translate"
+              : "Form a Sentence"}
           </span>
 
           {/* Question text */}
@@ -139,6 +174,9 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
                 Translate {question.fromLang === "serbian" ? "from Serbian" : "to Serbian"}:
                 <br />
                 <span className="text-accent font-normal text-xl mt-2 block">{question.from}</span>
+                <span className="text-xs text-muted-foreground mt-1 block">
+                  You can answer in {scriptMode === "both" ? "either Cyrillic or Latin" : scriptMode === "cyrillic" ? "Cyrillic" : "Latin"} script
+                </span>
               </>
             )}
           </h4>
@@ -190,7 +228,7 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
               onChange={(e) => setTextAnswer(e.target.value)}
               disabled={showResult}
               placeholder={
-                question.type === "fill-blank" ? "Type the missing word..." : "Type your translation..."
+                question.type === "fill-blank" ? "Type the missing word (Cyrillic or Latin)..." : "Type your translation (Cyrillic or Latin)..."
               }
               className="text-base"
               onKeyDown={(e) => {
@@ -221,9 +259,7 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
                   <p className="text-sm text-muted-foreground mt-1">
                     The correct answer is:{" "}
                     <span className="font-semibold text-foreground">
-                      {question.type === "multiple-choice"
-                        ? question.options[question.correctIndex]
-                        : question.answer}
+                      {getCorrectAnswerDisplay()}
                     </span>
                   </p>
                 )}
