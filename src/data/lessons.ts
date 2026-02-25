@@ -17,7 +17,7 @@ export interface PhraseItem {
 
 export type QuizQuestion =
   | { type: "multiple-choice"; question: string; options: string[]; correctIndex: number; hint?: string }
-  | { type: "fill-blank"; sentence: string; answer: string; hint?: string }
+  | { type: "fill-blank"; sentence: string; answer: string; acceptAlternatives?: string[]; hint?: string }
   | { type: "translate"; from: string; fromLang: "serbian" | "english"; answer: string; acceptAlternatives?: string[]; hint?: string };
 
 export interface Lesson {
@@ -76,11 +76,16 @@ export const lessons: Lesson[] = [
     ],
     culturalNote: "Serbians often greet with a firm handshake. Close friends and family kiss on the cheeks (usually three times).",
     quiz: [
-      { type: "multiple-choice", question: "How do you say 'hello' informally in Serbian?", options: ["Добар дан", "Здраво", "Довиђења", "Молим"], correctIndex: 1 },
+      { type: "multiple-choice", question: "How do you say 'hello' informally in Serbian?", options: ["Добар дан / Dobar dan", "Здраво / Zdravo", "Довиђења / Doviđenja", "Молим / Molim"], correctIndex: 1 },
       { type: "translate", from: "Hvala", fromLang: "serbian", answer: "thank you", hint: "A very common polite word" },
-      { type: "fill-blank", sentence: "_____ се зовете? (What is your name?)", answer: "Како", hint: "It means 'how'" },
+      { type: "fill-blank", sentence: "_____ се зовете? (What is your name?)", answer: "Како", acceptAlternatives: ["Kako"], hint: "It means 'how'" },
       { type: "multiple-choice", question: "What does 'Драго ми је' mean?", options: ["Goodbye", "Nice to meet you", "How are you?", "Thank you"], correctIndex: 1 },
-      { type: "translate", from: "Good morning", fromLang: "english", answer: "dobro jutro", acceptAlternatives: ["добро јутро"], hint: "Two words: good + morning" },
+      { type: "translate", from: "Good morning", fromLang: "english", answer: "dobro jutro", acceptAlternatives: ["добро јутро", "Dobro jutro", "Добро јутро"], hint: "Two words: good + morning" },
+      { type: "translate", from: "My name is Ana.", fromLang: "english", answer: "Zovem se Ana.", acceptAlternatives: ["Зовем се Ана.", "zovem se Ana"], hint: "Use 'Zovem se' + name" },
+      { type: "fill-blank", sentence: "Добро сам, _____. (I'm fine, thank you.)", answer: "хвала", acceptAlternatives: ["hvala"] },
+      { type: "translate", from: "How are you? (formal)", fromLang: "english", answer: "Kako ste?", acceptAlternatives: ["Како сте?", "kako ste"] },
+      { type: "multiple-choice", question: "Which phrase means 'goodbye'?", options: ["Ћао / Ćao", "Здраво / Zdravo", "Довиђења / Doviđenja", "Хвала / Hvala"], correctIndex: 2 },
+      { type: "translate", from: "Добро вече", fromLang: "serbian", answer: "good evening", acceptAlternatives: ["Good evening"] },
     ],
   },
   {
@@ -108,8 +113,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What is 'pet' in English?", options: ["three", "five", "seven", "ten"], correctIndex: 1 },
       { type: "translate", from: "seven", fromLang: "english", answer: "sedam", acceptAlternatives: ["седам"] },
-      { type: "fill-blank", sentence: "Један, два, ___, четири, пет", answer: "три", hint: "The number 3" },
-      { type: "multiple-choice", question: "How do you say 'ten' in Serbian?", options: ["девет", "десет", "осам", "седам"], correctIndex: 1 },
+      { type: "fill-blank", sentence: "Један, два, ___, четири, пет", answer: "три", acceptAlternatives: ["tri"], hint: "The number 3" },
+      { type: "multiple-choice", question: "How do you say 'ten' in Serbian?", options: ["девет / devet", "десет / deset", "осам / osam", "седам / sedam"], correctIndex: 1 },
+      { type: "translate", from: "How much does it cost?", fromLang: "english", answer: "Koliko košta?", acceptAlternatives: ["Колико кошта?", "koliko košta"] },
+      { type: "fill-blank", sentence: "Колико имаш _____? (How old are you?)", answer: "година", acceptAlternatives: ["godina"] },
+      { type: "translate", from: "eight", fromLang: "english", answer: "osam", acceptAlternatives: ["осам"] },
+      { type: "multiple-choice", question: "What number is 'šest'?", options: ["4", "5", "6", "7"], correctIndex: 2 },
     ],
   },
   {
@@ -139,8 +148,13 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What does 'sestra' mean?", options: ["brother", "sister", "mother", "daughter"], correctIndex: 1 },
       { type: "translate", from: "father", fromLang: "english", answer: "otac", acceptAlternatives: ["отац", "tata", "тата"] },
-      { type: "fill-blank", sentence: "Ово је моја _____. (This is my family.)", answer: "породица" },
-      { type: "multiple-choice", question: "How do you say 'grandmother' in Serbian?", options: ["деда", "мајка", "баба", "ћерка"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "Ово је моја _____. (This is my family.)", answer: "породица", acceptAlternatives: ["porodica"] },
+      { type: "multiple-choice", question: "How do you say 'grandmother' in Serbian?", options: ["деда / deda", "мајка / majka", "баба / baba", "ћерка / ćerka"], correctIndex: 2 },
+      { type: "translate", from: "I have a brother and a sister.", fromLang: "english", answer: "Imam brata i sestru.", acceptAlternatives: ["Имам брата и сестру.", "imam brata i sestru"] },
+      { type: "fill-blank", sentence: "Имам _____ и сестру. (I have a brother and a sister.)", answer: "брата", acceptAlternatives: ["brata"] },
+      { type: "translate", from: "husband", fromLang: "english", answer: "muž", acceptAlternatives: ["муж"] },
+      { type: "multiple-choice", question: "What is 'sin' in English?", options: ["daughter", "brother", "son", "father"], correctIndex: 2 },
+      { type: "translate", from: "This is my family.", fromLang: "english", answer: "Ovo je moja porodica.", acceptAlternatives: ["Ово је моја породица.", "ovo je moja porodica"] },
     ],
   },
   {
@@ -168,7 +182,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What color is 'crven'?", options: ["blue", "red", "green", "yellow"], correctIndex: 1 },
       { type: "translate", from: "black", fromLang: "english", answer: "crn", acceptAlternatives: ["црн"] },
-      { type: "fill-blank", sentence: "Небо је _____. (The sky is blue.)", answer: "плаво", hint: "Blue, but in neuter form" },
+      { type: "fill-blank", sentence: "Небо је _____. (The sky is blue.)", answer: "плаво", acceptAlternatives: ["plavo"], hint: "Blue, but in neuter form" },
+      { type: "translate", from: "What is your favorite color?", fromLang: "english", answer: "Koja je tvoja omiljena boja?", acceptAlternatives: ["Која је твоја омиљена боја?", "koja je tvoja omiljena boja"] },
+      { type: "multiple-choice", question: "What does 'žut' mean?", options: ["green", "white", "yellow", "orange"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "Која је твоја омиљена _____? (What is your favorite color?)", answer: "боја", acceptAlternatives: ["boja"] },
+      { type: "translate", from: "purple", fromLang: "english", answer: "ljubičast", acceptAlternatives: ["љубичаст"] },
+      { type: "translate", from: "The sky is blue.", fromLang: "english", answer: "Nebo je plavo.", acceptAlternatives: ["Небо је плаво.", "nebo je plavo"] },
     ],
   },
   {
@@ -197,8 +216,13 @@ export const lessons: Lesson[] = [
     culturalNote: "Serbian coffee (домаћа кафа) is similar to Turkish coffee — strong, thick, and served in small cups. It's a daily ritual.",
     quiz: [
       { type: "multiple-choice", question: "What does 'hleb' mean?", options: ["milk", "bread", "water", "cheese"], correctIndex: 1 },
-      { type: "translate", from: "I am hungry.", fromLang: "english", answer: "Gladan sam", acceptAlternatives: ["Гладан сам", "Gladna sam", "Гладна сам"] },
-      { type: "fill-blank", sentence: "Желим _____, молим. (I'd like a coffee, please.)", answer: "кафу" },
+      { type: "translate", from: "I am hungry.", fromLang: "english", answer: "Gladan sam.", acceptAlternatives: ["Гладан сам.", "Gladna sam.", "Гладна сам.", "gladan sam", "Gladan sam"] },
+      { type: "fill-blank", sentence: "Желим _____, молим. (I'd like a coffee, please.)", answer: "кафу", acceptAlternatives: ["kafu"] },
+      { type: "translate", from: "I am thirsty.", fromLang: "english", answer: "Žedan sam.", acceptAlternatives: ["Жедан сам.", "žedan sam", "Žedna sam.", "Жедна сам."] },
+      { type: "multiple-choice", question: "What is 'sir' in English?", options: ["milk", "egg", "cheese", "fish"], correctIndex: 2 },
+      { type: "translate", from: "I'd like a coffee, please.", fromLang: "english", answer: "Želim kafu, molim.", acceptAlternatives: ["Желим кафу, молим.", "želim kafu molim"] },
+      { type: "fill-blank", sentence: "_____ сам. (I am hungry - masc.)", answer: "Гладан", acceptAlternatives: ["Gladan"] },
+      { type: "translate", from: "water", fromLang: "english", answer: "voda", acceptAlternatives: ["вода"] },
     ],
   },
   {
@@ -226,7 +250,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What day is 'sreda'?", options: ["Monday", "Wednesday", "Friday", "Sunday"], correctIndex: 1 },
       { type: "translate", from: "tomorrow", fromLang: "english", answer: "sutra", acceptAlternatives: ["сутра"] },
-      { type: "fill-blank", sentence: "Данас је _____. (Today is Monday.)", answer: "понедељак" },
+      { type: "fill-blank", sentence: "Данас је _____. (Today is Monday.)", answer: "понедељак", acceptAlternatives: ["ponedeljak"] },
+      { type: "translate", from: "What day is it today?", fromLang: "english", answer: "Koji je danas dan?", acceptAlternatives: ["Који је данас дан?", "koji je danas dan"] },
+      { type: "multiple-choice", question: "What does 'juče' mean?", options: ["today", "tomorrow", "yesterday", "always"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "_____ је понедељак. (Today is Monday.)", answer: "Данас", acceptAlternatives: ["Danas"] },
+      { type: "translate", from: "Saturday", fromLang: "english", answer: "subota", acceptAlternatives: ["субота"] },
+      { type: "translate", from: "Today is Monday.", fromLang: "english", answer: "Danas je ponedeljak.", acceptAlternatives: ["Данас је понедељак.", "danas je ponedeljak"] },
     ],
   },
   {
@@ -256,7 +285,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What does 'mali' mean?", options: ["big", "old", "small", "new"], correctIndex: 2 },
       { type: "translate", from: "beautiful", fromLang: "english", answer: "lep", acceptAlternatives: ["леп"] },
-      { type: "fill-blank", sentence: "Он је _____ човек. (He is a good man.)", answer: "добар" },
+      { type: "fill-blank", sentence: "Он је _____ човек. (He is a good man.)", answer: "добар", acceptAlternatives: ["dobar"] },
+      { type: "translate", from: "This house is big.", fromLang: "english", answer: "Ova kuća je velika.", acceptAlternatives: ["Ова кућа је велика.", "ova kuća je velika"] },
+      { type: "multiple-choice", question: "What is the opposite of 'star' (old)?", options: ["нов / nov", "брз / brz", "млад / mlad", "спор / spor"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "Ова кућа је _____. (This house is big.)", answer: "велика", acceptAlternatives: ["velika"] },
+      { type: "translate", from: "cold", fromLang: "english", answer: "hladan", acceptAlternatives: ["хладан"] },
+      { type: "translate", from: "He is a good man.", fromLang: "english", answer: "On je dobar čovek.", acceptAlternatives: ["Он је добар човек.", "on je dobar čovek"] },
     ],
   },
   {
@@ -287,7 +321,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What does 'jesti' mean?", options: ["to drink", "to eat", "to sleep", "to go"], correctIndex: 1 },
       { type: "translate", from: "to speak", fromLang: "english", answer: "govoriti", acceptAlternatives: ["говорити"] },
-      { type: "fill-blank", sentence: "_____ ли ми помоћи? (Can you help me?)", answer: "Можеш" },
+      { type: "fill-blank", sentence: "_____ ли ми помоћи? (Can you help me?)", answer: "Можеш", acceptAlternatives: ["Možeš"] },
+      { type: "translate", from: "I have a house.", fromLang: "english", answer: "Ja imam kuću.", acceptAlternatives: ["Ја имам кућу.", "ja imam kuću"] },
+      { type: "multiple-choice", question: "What does 'pisati' mean?", options: ["to read", "to write", "to sleep", "to drink"], correctIndex: 1 },
+      { type: "translate", from: "I want to go.", fromLang: "english", answer: "Hoću da idem.", acceptAlternatives: ["Хоћу да идем.", "hoću da idem"] },
+      { type: "fill-blank", sentence: "Ја _____ кућу. (I have a house.)", answer: "имам", acceptAlternatives: ["imam"] },
+      { type: "translate", from: "Can you help me?", fromLang: "english", answer: "Možeš li mi pomoći?", acceptAlternatives: ["Можеш ли ми помоћи?", "možeš li mi pomoći"] },
     ],
   },
   {
@@ -315,9 +354,14 @@ export const lessons: Lesson[] = [
     ],
     culturalNote: "Tipping in Serbia is customary but not as high as in the US. Rounding up or leaving 10% is standard.",
     quiz: [
-      { type: "multiple-choice", question: "How do you ask for the check?", options: ["Рачун, молим.", "Јеловник, молим.", "Хвала.", "Здраво."], correctIndex: 0 },
+      { type: "multiple-choice", question: "How do you ask for the check?", options: ["Račun, molim.", "Jelovnik, molim.", "Hvala.", "Zdravo."], correctIndex: 0 },
       { type: "translate", from: "breakfast", fromLang: "english", answer: "doručak", acceptAlternatives: ["доручак"] },
-      { type: "fill-blank", sentence: "Желим да _____... (I'd like to order...)", answer: "наручим" },
+      { type: "fill-blank", sentence: "Желим да _____... (I'd like to order...)", answer: "наручим", acceptAlternatives: ["naručim"] },
+      { type: "translate", from: "Can I get the menu?", fromLang: "english", answer: "Mogu li da dobijem jelovnik?", acceptAlternatives: ["Могу ли да добијем јеловник?", "mogu li da dobijem jelovnik"] },
+      { type: "multiple-choice", question: "What is 'večera' in English?", options: ["breakfast", "lunch", "dinner", "snack"], correctIndex: 2 },
+      { type: "translate", from: "The check, please.", fromLang: "english", answer: "Račun, molim.", acceptAlternatives: ["Рачун, молим.", "račun molim"] },
+      { type: "fill-blank", sentence: "Могу ли да добијем _____? (Can I get the menu?)", answer: "јеловник", acceptAlternatives: ["jelovnik"] },
+      { type: "translate", from: "waiter", fromLang: "english", answer: "konobar", acceptAlternatives: ["конобар"] },
     ],
   },
   {
@@ -343,8 +387,13 @@ export const lessons: Lesson[] = [
     ],
     quiz: [
       { type: "multiple-choice", question: "What does 'levo' mean?", options: ["right", "straight", "left", "far"], correctIndex: 2 },
-      { type: "translate", from: "Where is...?", fromLang: "english", answer: "Gde je...?", acceptAlternatives: ["Где је...?"] },
-      { type: "fill-blank", sentence: "Идите _____, па скрените лево. (Go straight, then turn left.)", answer: "право" },
+      { type: "translate", from: "Where is...?", fromLang: "english", answer: "Gde je...?", acceptAlternatives: ["Где је...?", "gde je"] },
+      { type: "fill-blank", sentence: "Идите _____, па скрените лево. (Go straight, then turn left.)", answer: "право", acceptAlternatives: ["pravo"] },
+      { type: "translate", from: "Go straight, then turn left.", fromLang: "english", answer: "Idite pravo, pa skrenite levo.", acceptAlternatives: ["Идите право, па скрените лево.", "idite pravo pa skrenite levo"] },
+      { type: "multiple-choice", question: "What is the opposite of 'blizu' (near)?", options: ["gore", "daleko", "dole", "pravo"], correctIndex: 1 },
+      { type: "translate", from: "How do I get to...?", fromLang: "english", answer: "Kako da stignem do...?", acceptAlternatives: ["Како да стигнем до...?", "kako da stignem do"] },
+      { type: "fill-blank", sentence: "_____ је...? (Where is...?)", answer: "Где", acceptAlternatives: ["Gde"] },
+      { type: "translate", from: "street", fromLang: "english", answer: "ulica", acceptAlternatives: ["улица"] },
     ],
   },
   {
@@ -368,9 +417,14 @@ export const lessons: Lesson[] = [
       { cyrillic: "Жао ми је, не разумем.", latin: "Žao mi je, ne razumem.", english: "I'm sorry, I don't understand.", pronunciation: "ZHOW mee yeh, neh RAH-zoo-mehm" },
     ],
     quiz: [
-      { type: "multiple-choice", question: "How do you say 'excuse me' formally?", options: ["Извини", "Извините", "Хвала", "Молим"], correctIndex: 1 },
-      { type: "translate", from: "I'm sorry", fromLang: "english", answer: "Žao mi je", acceptAlternatives: ["Жао ми је"] },
-      { type: "fill-blank", sentence: "Нема на _____. (You're welcome.)", answer: "чему" },
+      { type: "multiple-choice", question: "How do you say 'excuse me' formally?", options: ["Извини / Izvini", "Извините / Izvinite", "Хвала / Hvala", "Молим / Molim"], correctIndex: 1 },
+      { type: "translate", from: "I'm sorry", fromLang: "english", answer: "Žao mi je", acceptAlternatives: ["Жао ми је", "žao mi je"] },
+      { type: "fill-blank", sentence: "Нема на _____. (You're welcome.)", answer: "чему", acceptAlternatives: ["čemu"] },
+      { type: "translate", from: "Excuse me, can you help me?", fromLang: "english", answer: "Izvinite, možete li mi pomoći?", acceptAlternatives: ["Извините, можете ли ми помоћи?", "izvinite možete li mi pomoći"] },
+      { type: "multiple-choice", question: "What does 'slažem se' mean?", options: ["I'm sorry", "No problem", "I agree", "Of course"], correctIndex: 2 },
+      { type: "translate", from: "I'm sorry, I don't understand.", fromLang: "english", answer: "Žao mi je, ne razumem.", acceptAlternatives: ["Жао ми је, не разумем.", "žao mi je ne razumem"] },
+      { type: "fill-blank", sentence: "Нема _____. (No problem.)", answer: "проблема", acceptAlternatives: ["problema"] },
+      { type: "translate", from: "of course", fromLang: "english", answer: "naravno", acceptAlternatives: ["наравно"] },
     ],
   },
   {
@@ -396,7 +450,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What does 'uvek' mean?", options: ["never", "sometimes", "always", "often"], correctIndex: 2 },
       { type: "translate", from: "now", fromLang: "english", answer: "sada", acceptAlternatives: ["сада"] },
-      { type: "fill-blank", sentence: "_____ читам увече. (Sometimes I read in the evening.)", answer: "Понекад" },
+      { type: "fill-blank", sentence: "_____ читам увече. (Sometimes I read in the evening.)", answer: "Понекад", acceptAlternatives: ["Ponekad"] },
+      { type: "translate", from: "I'm always late.", fromLang: "english", answer: "Uvek kasnim.", acceptAlternatives: ["Увек касним.", "uvek kasnim"] },
+      { type: "multiple-choice", question: "What is the opposite of 'rano' (early)?", options: ["sada", "kasno", "uvek", "nikad"], correctIndex: 1 },
+      { type: "translate", from: "Sometimes I read in the evening.", fromLang: "english", answer: "Ponekad čitam uveče.", acceptAlternatives: ["Понекад читам увече.", "ponekad čitam uveče"] },
+      { type: "fill-blank", sentence: "Увек _____. (I'm always late.)", answer: "касним", acceptAlternatives: ["kasnim"] },
+      { type: "translate", from: "often", fromLang: "english", answer: "često", acceptAlternatives: ["често"] },
     ],
   },
   {
@@ -417,13 +476,18 @@ export const lessons: Lesson[] = [
       { cyrillic: "тржница", latin: "tržnica", english: "market", pronunciation: "TERZH-nee-tsah" },
     ],
     phrases: [
-      { cyrillic: "Где је nearest апотека?", latin: "Gde je najbliža apoteka?", english: "Where is the nearest pharmacy?", pronunciation: "Gdeh yeh nai-BLEE-zhah ah-POH-teh-kah" },
+      { cyrillic: "Где је најближа апотека?", latin: "Gde je najbliža apoteka?", english: "Where is the nearest pharmacy?", pronunciation: "Gdeh yeh nai-BLEE-zhah ah-POH-teh-kah" },
       { cyrillic: "Идем у банку.", latin: "Idem u banku.", english: "I'm going to the bank.", pronunciation: "EE-dehm oo BAHN-koo" },
     ],
     quiz: [
       { type: "multiple-choice", question: "What is 'pekara'?", options: ["pharmacy", "bakery", "bank", "school"], correctIndex: 1 },
       { type: "translate", from: "library", fromLang: "english", answer: "biblioteka", acceptAlternatives: ["библиотека"] },
-      { type: "fill-blank", sentence: "Идем у _____. (I'm going to the bank.)", answer: "банку" },
+      { type: "fill-blank", sentence: "Идем у _____. (I'm going to the bank.)", answer: "банку", acceptAlternatives: ["banku"] },
+      { type: "translate", from: "I'm going to the bank.", fromLang: "english", answer: "Idem u banku.", acceptAlternatives: ["Идем у банку.", "idem u banku"] },
+      { type: "multiple-choice", question: "What is 'apoteka' in English?", options: ["bakery", "library", "pharmacy", "market"], correctIndex: 2 },
+      { type: "translate", from: "Where is the nearest pharmacy?", fromLang: "english", answer: "Gde je najbliža apoteka?", acceptAlternatives: ["Где је најближа апотека?", "gde je najbliža apoteka"] },
+      { type: "fill-blank", sentence: "Где је најближа _____? (Where is the nearest pharmacy?)", answer: "апотека", acceptAlternatives: ["apoteka"] },
+      { type: "translate", from: "market", fromLang: "english", answer: "tržnica", acceptAlternatives: ["тржница"] },
     ],
   },
   {
@@ -450,7 +514,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What pronoun is 'ona'?", options: ["he", "she", "we", "they"], correctIndex: 1 },
       { type: "translate", from: "we", fromLang: "english", answer: "mi", acceptAlternatives: ["ми"] },
-      { type: "fill-blank", sentence: "_____ учимо српски. (We are learning Serbian.)", answer: "Ми" },
+      { type: "fill-blank", sentence: "_____ учимо српски. (We are learning Serbian.)", answer: "Ми", acceptAlternatives: ["Mi"] },
+      { type: "translate", from: "I am from America.", fromLang: "english", answer: "Ja sam iz Amerike.", acceptAlternatives: ["Ја сам из Америке.", "ja sam iz Amerike"] },
+      { type: "multiple-choice", question: "What does 'oni' mean?", options: ["we", "you (formal)", "they (masc.)", "she"], correctIndex: 2 },
+      { type: "translate", from: "We are learning Serbian.", fromLang: "english", answer: "Mi učimo srpski.", acceptAlternatives: ["Ми учимо српски.", "mi učimo srpski"] },
+      { type: "fill-blank", sentence: "_____ сам из Америке. (I am from America.)", answer: "Ја", acceptAlternatives: ["Ja"] },
+      { type: "translate", from: "you (formal/plural)", fromLang: "english", answer: "vi", acceptAlternatives: ["ви"] },
     ],
   },
   {
@@ -475,10 +544,15 @@ export const lessons: Lesson[] = [
       { cyrillic: "Ми нисмо из Србије.", latin: "Mi nismo iz Srbije.", english: "We are not from Serbia.", pronunciation: "Mee NEES-mo eez SER-bee-yeh" },
     ],
     quiz: [
-      { type: "multiple-choice", question: "How do you say 'I am' in Serbian?", options: ["ја си", "ја сам", "ја је", "ја су"], correctIndex: 1 },
-      { type: "translate", from: "She is a doctor.", fromLang: "english", answer: "Ona je lekarka.", acceptAlternatives: ["Она је лекарка."] },
-      { type: "fill-blank", sentence: "Ми _____ из Србије. (We are not from Serbia.)", answer: "нисмо" },
-      { type: "multiple-choice", question: "What is the negative form of 'je' (is)?", options: ["несам", "није", "нису", "нисте"], correctIndex: 1 },
+      { type: "multiple-choice", question: "How do you say 'I am' in Serbian?", options: ["ja si", "ja sam", "ja je", "ja su"], correctIndex: 1 },
+      { type: "translate", from: "She is a doctor.", fromLang: "english", answer: "Ona je lekarka.", acceptAlternatives: ["Она је лекарка.", "ona je lekarka"] },
+      { type: "fill-blank", sentence: "Ми _____ из Србије. (We are not from Serbia.)", answer: "нисмо", acceptAlternatives: ["nismo"] },
+      { type: "multiple-choice", question: "What is the negative form of 'je' (is)?", options: ["nesam", "nije", "nisu", "niste"], correctIndex: 1 },
+      { type: "translate", from: "I am a student.", fromLang: "english", answer: "Ja sam student.", acceptAlternatives: ["Ја сам студент.", "ja sam student"] },
+      { type: "fill-blank", sentence: "Она _____ лекарка. (She is a doctor.)", answer: "је", acceptAlternatives: ["je"] },
+      { type: "translate", from: "We are not from Serbia.", fromLang: "english", answer: "Mi nismo iz Srbije.", acceptAlternatives: ["Ми нисмо из Србије.", "mi nismo iz Srbije"] },
+      { type: "multiple-choice", question: "How do you say 'they are' in Serbian?", options: ["mi smo", "vi ste", "oni su", "ja sam"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "Ја _____ студент. (I am a student.)", answer: "сам", acceptAlternatives: ["sam"] },
     ],
   },
   {
@@ -504,7 +578,12 @@ export const lessons: Lesson[] = [
     quiz: [
       { type: "multiple-choice", question: "What is 'mačka'?", options: ["dog", "horse", "cat", "bird"], correctIndex: 2 },
       { type: "translate", from: "dog", fromLang: "english", answer: "pas", acceptAlternatives: ["пас"] },
-      { type: "fill-blank", sentence: "Волим _____. (I love animals.)", answer: "животиње" },
+      { type: "fill-blank", sentence: "Волим _____. (I love animals.)", answer: "животиње", acceptAlternatives: ["životinje"] },
+      { type: "translate", from: "I have a dog.", fromLang: "english", answer: "Imam psa.", acceptAlternatives: ["Имам пса.", "imam psa"] },
+      { type: "multiple-choice", question: "What is 'konj' in English?", options: ["cow", "pig", "horse", "rabbit"], correctIndex: 2 },
+      { type: "translate", from: "I love animals.", fromLang: "english", answer: "Volim životinje.", acceptAlternatives: ["Волим животиње.", "volim životinje"] },
+      { type: "fill-blank", sentence: "Имам _____. (I have a dog.)", answer: "пса", acceptAlternatives: ["psa"] },
+      { type: "translate", from: "sheep", fromLang: "english", answer: "ovca", acceptAlternatives: ["овца"] },
     ],
   },
   {
@@ -528,7 +607,13 @@ export const lessons: Lesson[] = [
     ],
     quiz: [
       { type: "multiple-choice", question: "What does 'kiša' mean?", options: ["snow", "rain", "wind", "sun"], correctIndex: 1 },
-      { type: "translate", from: "It's raining.", fromLang: "english", answer: "Pada kiša.", acceptAlternatives: ["Пада киша."] },
+      { type: "translate", from: "It's raining.", fromLang: "english", answer: "Pada kiša.", acceptAlternatives: ["Пада киша.", "pada kiša"] },
+      { type: "fill-blank", sentence: "Данас је _____. (It's nice today.)", answer: "лепо", acceptAlternatives: ["lepo"] },
+      { type: "translate", from: "It's nice today.", fromLang: "english", answer: "Danas je lepo.", acceptAlternatives: ["Данас је лепо.", "danas je lepo"] },
+      { type: "multiple-choice", question: "What is 'sneg' in English?", options: ["rain", "sun", "snow", "wind"], correctIndex: 2 },
+      { type: "translate", from: "cold", fromLang: "english", answer: "hladno", acceptAlternatives: ["хладно"] },
+      { type: "fill-blank", sentence: "Пада _____. (It's raining.)", answer: "киша", acceptAlternatives: ["kiša"] },
+      { type: "translate", from: "warm", fromLang: "english", answer: "toplo", acceptAlternatives: ["топло"] },
     ],
   },
   {
@@ -553,7 +638,13 @@ export const lessons: Lesson[] = [
     ],
     quiz: [
       { type: "multiple-choice", question: "How do you form a yes/no question in Serbian?", options: ["Add 'da li' before the verb", "Change word order", "Add 'ne' at the end", "Use rising tone only"], correctIndex: 0 },
-      { type: "translate", from: "Do you speak English?", fromLang: "english", answer: "Da li govoriš engleski?", acceptAlternatives: ["Да ли говориш енглески?"] },
+      { type: "translate", from: "Do you speak English?", fromLang: "english", answer: "Da li govoriš engleski?", acceptAlternatives: ["Да ли говориш енглески?", "da li govoriš engleski"] },
+      { type: "fill-blank", sentence: "_____ је ово? (What is this?)", answer: "Шта", acceptAlternatives: ["Šta"] },
+      { type: "translate", from: "What is this?", fromLang: "english", answer: "Šta je ovo?", acceptAlternatives: ["Шта је ово?", "šta je ovo"] },
+      { type: "multiple-choice", question: "What does 'zašto' mean?", options: ["when", "where", "who", "why"], correctIndex: 3 },
+      { type: "translate", from: "where", fromLang: "english", answer: "gde", acceptAlternatives: ["где"] },
+      { type: "fill-blank", sentence: "Да ли _____ енглески? (Do you speak English?)", answer: "говориш", acceptAlternatives: ["govoriš"] },
+      { type: "translate", from: "when", fromLang: "english", answer: "kada", acceptAlternatives: ["када"] },
     ],
   },
   {
@@ -576,8 +667,13 @@ export const lessons: Lesson[] = [
       { cyrillic: "Шта је то?", latin: "Šta je to?", english: "What is that?", pronunciation: "Shtah yeh toh" },
     ],
     quiz: [
-      { type: "multiple-choice", question: "Which word means 'this' for feminine nouns?", options: ["овај", "ова", "ово", "тај"], correctIndex: 1 },
-      { type: "translate", from: "This is my book.", fromLang: "english", answer: "Ovo je moja knjiga.", acceptAlternatives: ["Ово је моја књига."] },
+      { type: "multiple-choice", question: "Which word means 'this' for feminine nouns?", options: ["ovaj", "ova", "ovo", "taj"], correctIndex: 1 },
+      { type: "translate", from: "This is my book.", fromLang: "english", answer: "Ovo je moja knjiga.", acceptAlternatives: ["Ово је моја књига.", "ovo je moja knjiga"] },
+      { type: "fill-blank", sentence: "_____ је моја књига. (This is my book.)", answer: "Ово", acceptAlternatives: ["Ovo"] },
+      { type: "translate", from: "What is that?", fromLang: "english", answer: "Šta je to?", acceptAlternatives: ["Шта је то?", "šta je to"] },
+      { type: "multiple-choice", question: "What is 'onaj' used for?", options: ["this (neuter)", "that (masc.)", "that over there (masc.)", "this (fem.)"], correctIndex: 2 },
+      { type: "fill-blank", sentence: "Шта је _____? (What is that?)", answer: "то", acceptAlternatives: ["to"] },
+      { type: "translate", from: "this (neuter)", fromLang: "english", answer: "ovo", acceptAlternatives: ["ово"] },
     ],
   },
   {
@@ -602,8 +698,14 @@ export const lessons: Lesson[] = [
       { cyrillic: "Како се каже...?", latin: "Kako se kaže...?", english: "How do you say...?", pronunciation: "KAH-ko seh KAH-zheh" },
     ],
     quiz: [
-      { type: "multiple-choice", question: "How do you say 'I don't understand'?", options: ["Не знам", "Не разумем", "Не могу", "Не желим"], correctIndex: 1 },
-      { type: "translate", from: "Can you repeat that?", fromLang: "english", answer: "Možete li ponoviti?", acceptAlternatives: ["Можете ли поновити?"] },
+      { type: "multiple-choice", question: "How do you say 'I don't understand'?", options: ["Ne znam", "Ne razumem", "Ne mogu", "Ne želim"], correctIndex: 1 },
+      { type: "translate", from: "Can you repeat that?", fromLang: "english", answer: "Možete li ponoviti?", acceptAlternatives: ["Можете ли поновити?", "možete li ponoviti"] },
+      { type: "fill-blank", sentence: "Како се _____...? (How do you say...?)", answer: "каже", acceptAlternatives: ["kaže"] },
+      { type: "translate", from: "I don't understand.", fromLang: "english", answer: "Ne razumem.", acceptAlternatives: ["Не разумем.", "ne razumem"] },
+      { type: "multiple-choice", question: "What does 'tačno' mean?", options: ["incorrect", "correct", "question", "answer"], correctIndex: 1 },
+      { type: "translate", from: "How do you say...?", fromLang: "english", answer: "Kako se kaže...?", acceptAlternatives: ["Како се каже...?", "kako se kaže"] },
+      { type: "fill-blank", sentence: "_____ ли поновити? (Can you repeat that?)", answer: "Можете", acceptAlternatives: ["Možete"] },
+      { type: "translate", from: "sentence", fromLang: "english", answer: "rečenica", acceptAlternatives: ["реченица"] },
     ],
   },
   {
@@ -629,7 +731,13 @@ export const lessons: Lesson[] = [
     ],
     quiz: [
       { type: "multiple-choice", question: "What does 'bez' mean?", options: ["with", "without", "for", "from"], correctIndex: 1 },
-      { type: "translate", from: "I am from America.", fromLang: "english", answer: "Ja sam iz Amerike.", acceptAlternatives: ["Ја сам из Америке."] },
+      { type: "translate", from: "I am from America.", fromLang: "english", answer: "Ja sam iz Amerike.", acceptAlternatives: ["Ја сам из Америке.", "ja sam iz Amerike"] },
+      { type: "fill-blank", sentence: "Идем _____ школу. (I'm going to school.)", answer: "у", acceptAlternatives: ["u"] },
+      { type: "translate", from: "Coffee without sugar.", fromLang: "english", answer: "Kafa bez šećera.", acceptAlternatives: ["Кафа без шећера.", "kafa bez šećera"] },
+      { type: "multiple-choice", question: "What does 'sa' mean?", options: ["without", "for", "with", "from"], correctIndex: 2 },
+      { type: "translate", from: "I'm going to school.", fromLang: "english", answer: "Idem u školu.", acceptAlternatives: ["Идем у школу.", "idem u školu"] },
+      { type: "fill-blank", sentence: "Кафа _____ шећера. (Coffee without sugar.)", answer: "без", acceptAlternatives: ["bez"] },
+      { type: "translate", from: "for", fromLang: "english", answer: "za", acceptAlternatives: ["за"] },
     ],
   },
   {
@@ -653,8 +761,14 @@ export const lessons: Lesson[] = [
       { cyrillic: "Ја сам Американац.", latin: "Ja sam Amerikanac.", english: "I am American. (masc.)", pronunciation: "Yah sahm ah-meh-ree-KAH-nahts" },
     ],
     quiz: [
-      { type: "multiple-choice", question: "How do you ask 'Where are you from?' informally?", options: ["Где си?", "Одакле си?", "Ко си?", "Како си?"], correctIndex: 1 },
-      { type: "translate", from: "I am American.", fromLang: "english", answer: "Ja sam Amerikanac.", acceptAlternatives: ["Ја сам Американац.", "Ja sam Amerikanka.", "Ја сам Американка."] },
+      { type: "multiple-choice", question: "How do you ask 'Where are you from?' informally?", options: ["Gde si?", "Odakle si?", "Ko si?", "Kako si?"], correctIndex: 1 },
+      { type: "translate", from: "I am American.", fromLang: "english", answer: "Ja sam Amerikanac.", acceptAlternatives: ["Ја сам Американац.", "Ja sam Amerikanka.", "Ја сам Американка.", "ja sam Amerikanac"] },
+      { type: "fill-blank", sentence: "_____ си? (Where are you from?)", answer: "Одакле", acceptAlternatives: ["Odakle"] },
+      { type: "translate", from: "Where are you from?", fromLang: "english", answer: "Odakle si?", acceptAlternatives: ["Одакле си?", "odakle si"] },
+      { type: "multiple-choice", question: "What is 'Nemačka' in English?", options: ["France", "England", "Germany", "America"], correctIndex: 2 },
+      { type: "translate", from: "foreigner", fromLang: "english", answer: "stranac", acceptAlternatives: ["странац"] },
+      { type: "fill-blank", sentence: "Ја сам _____. (I am American - masc.)", answer: "Американац", acceptAlternatives: ["Amerikanac"] },
+      { type: "translate", from: "I am American. (masc.)", fromLang: "english", answer: "Ja sam Amerikanac.", acceptAlternatives: ["Ја сам Американац.", "ja sam Amerikanac"] },
     ],
   },
   {
