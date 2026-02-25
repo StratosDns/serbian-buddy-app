@@ -15,6 +15,11 @@ export interface PhraseItem {
   note?: string;
 }
 
+export interface PracticalExample {
+  situation: string;
+  dialogue: { speaker: string; cyrillic: string; latin: string; english: string }[];
+}
+
 export type QuizQuestion =
   | { type: "multiple-choice"; question: string; options: string[]; correctIndex: number; hint?: string }
   | { type: "fill-blank"; sentence: string; answer: string; acceptAlternatives?: string[]; hint?: string }
@@ -29,6 +34,7 @@ export interface Lesson {
   vocabulary: VocabItem[];
   phrases: PhraseItem[];
   culturalNote?: string;
+  practicalExamples?: PracticalExample[];
   quiz: QuizQuestion[];
 }
 
@@ -75,6 +81,24 @@ export const lessons: Lesson[] = [
       { cyrillic: "Добро сам, хвала.", latin: "Dobro sam, hvala.", english: "I'm fine, thank you.", pronunciation: "DOH-bro sahm, HVAH-lah" },
     ],
     culturalNote: "Serbians often greet with a firm handshake. Close friends and family kiss on the cheeks (usually three times).",
+    practicalExamples: [
+      {
+        situation: "Meeting someone new at a café",
+        dialogue: [
+          { speaker: "Ana", cyrillic: "Здраво! Зовем се Ана.", latin: "Zdravo! Zovem se Ana.", english: "Hello! My name is Ana." },
+          { speaker: "Marko", cyrillic: "Здраво, Ана! Зовем се Марко. Драго ми је.", latin: "Zdravo, Ana! Zovem se Marko. Drago mi je.", english: "Hello, Ana! My name is Marko. Nice to meet you." },
+          { speaker: "Ana", cyrillic: "Драго ми је. Како сте?", latin: "Drago mi je. Kako ste?", english: "Nice to meet you too. How are you?" },
+          { speaker: "Marko", cyrillic: "Добро сам, хвала. А ви?", latin: "Dobro sam, hvala. A vi?", english: "I'm fine, thank you. And you?" },
+        ],
+      },
+      {
+        situation: "Saying goodbye after work",
+        dialogue: [
+          { speaker: "Jelena", cyrillic: "Лаку ноћ! Довиђења!", latin: "Laku noć! Doviđenja!", english: "Good night! Goodbye!" },
+          { speaker: "Nikola", cyrillic: "Довиђења! Ћао!", latin: "Doviđenja! Ćao!", english: "Goodbye! Bye!" },
+        ],
+      },
+    ],
     quiz: [
       { type: "multiple-choice", question: "How do you say 'hello' informally in Serbian?", options: ["Добар дан / Dobar dan", "Здраво / Zdravo", "Довиђења / Doviđenja", "Молим / Molim"], correctIndex: 1 },
       { type: "translate", from: "Hvala", fromLang: "serbian", answer: "thank you", hint: "A very common polite word" },
@@ -109,6 +133,23 @@ export const lessons: Lesson[] = [
     phrases: [
       { cyrillic: "Колико кошта?", latin: "Koliko košta?", english: "How much does it cost?", pronunciation: "KOH-lee-ko KOSH-tah" },
       { cyrillic: "Колико имаш година?", latin: "Koliko imaš godina?", english: "How old are you?", pronunciation: "KOH-lee-ko EE-mahsh go-DEE-nah" },
+    ],
+    practicalExamples: [
+      {
+        situation: "Shopping at the market",
+        dialogue: [
+          { speaker: "Customer", cyrillic: "Колико кошта?", latin: "Koliko košta?", english: "How much does it cost?" },
+          { speaker: "Vendor", cyrillic: "Десет евра.", latin: "Deset evra.", english: "Ten euros." },
+          { speaker: "Customer", cyrillic: "Молим, дај ми три.", latin: "Molim, daj mi tri.", english: "Please give me three." },
+        ],
+      },
+      {
+        situation: "Asking someone's age",
+        dialogue: [
+          { speaker: "Marko", cyrillic: "Колико имаш година?", latin: "Koliko imaš godina?", english: "How old are you?" },
+          { speaker: "Ana", cyrillic: "Имам двадесет година.", latin: "Imam dvadeset godina.", english: "I am twenty years old." },
+        ],
+      },
     ],
     quiz: [
       { type: "multiple-choice", question: "What is 'pet' in English?", options: ["three", "five", "seven", "ten"], correctIndex: 1 },
@@ -145,6 +186,23 @@ export const lessons: Lesson[] = [
       { cyrillic: "Ово је моја породица.", latin: "Ovo je moja porodica.", english: "This is my family.", pronunciation: "OH-vo yeh MOH-yah po-ROH-dee-tsah" },
     ],
     culturalNote: "Family is extremely important in Serbian culture. Extended families often live close together, and Sunday family lunch is a sacred tradition.",
+    practicalExamples: [
+      {
+        situation: "Introducing your family",
+        dialogue: [
+          { speaker: "Jelena", cyrillic: "Ово је моја породица. Ово је мој муж, Петар.", latin: "Ovo je moja porodica. Ovo je moj muž, Petar.", english: "This is my family. This is my husband, Petar." },
+          { speaker: "Friend", cyrillic: "Драго ми је, Петар!", latin: "Drago mi je, Petar!", english: "Nice to meet you, Petar!" },
+          { speaker: "Jelena", cyrillic: "А ово су моје деца — син Лука и ћерка Миа.", latin: "A ovo su moje deca — sin Luka i ćerka Mia.", english: "And these are my children — son Luka and daughter Mia." },
+        ],
+      },
+      {
+        situation: "Talking about siblings",
+        dialogue: [
+          { speaker: "Nikola", cyrillic: "Имаш ли браћу или сестре?", latin: "Imaš li braću ili sestre?", english: "Do you have brothers or sisters?" },
+          { speaker: "Ana", cyrillic: "Да, имам брата и сестру.", latin: "Da, imam brata i sestru.", english: "Yes, I have a brother and a sister." },
+        ],
+      },
+    ],
     quiz: [
       { type: "multiple-choice", question: "What does 'sestra' mean?", options: ["brother", "sister", "mother", "daughter"], correctIndex: 1 },
       { type: "translate", from: "father", fromLang: "english", answer: "otac", acceptAlternatives: ["отац", "tata", "тата"] },
@@ -178,6 +236,23 @@ export const lessons: Lesson[] = [
     phrases: [
       { cyrillic: "Која је твоја омиљена боја?", latin: "Koja je tvoja omiljena boja?", english: "What is your favorite color?", pronunciation: "KOH-yah yeh TVOH-yah oh-MEE-lyeh-nah BOH-yah" },
       { cyrillic: "Небо је плаво.", latin: "Nebo je plavo.", english: "The sky is blue.", pronunciation: "NEH-bo yeh PLAH-vo" },
+    ],
+    practicalExamples: [
+      {
+        situation: "Talking about favorite colors",
+        dialogue: [
+          { speaker: "Maja", cyrillic: "Која је твоја омиљена боја?", latin: "Koja je tvoja omiljena boja?", english: "What is your favorite color?" },
+          { speaker: "Stefan", cyrillic: "Волим плаву боју. А ти?", latin: "Volim plavu boju. A ti?", english: "I like blue. And you?" },
+          { speaker: "Maja", cyrillic: "Ја волим зелену боју.", latin: "Ja volim zelenu boju.", english: "I like green." },
+        ],
+      },
+      {
+        situation: "Describing clothes in a shop",
+        dialogue: [
+          { speaker: "Customer", cyrillic: "Имате ли ову мајицу у црвеној боји?", latin: "Imate li ovu majicu u crvenoj boji?", english: "Do you have this shirt in red?" },
+          { speaker: "Shop assistant", cyrillic: "Да, имамо у црвеној и плавој.", latin: "Da, imamo u crvenoj i plavoj.", english: "Yes, we have it in red and blue." },
+        ],
+      },
     ],
     quiz: [
       { type: "multiple-choice", question: "What color is 'crven'?", options: ["blue", "red", "green", "yellow"], correctIndex: 1 },
@@ -214,6 +289,24 @@ export const lessons: Lesson[] = [
       { cyrillic: "Желим кафу, молим.", latin: "Želim kafu, molim.", english: "I'd like a coffee, please.", pronunciation: "ZHEH-leem KAH-foo, MOH-leem" },
     ],
     culturalNote: "Serbian coffee (домаћа кафа) is similar to Turkish coffee — strong, thick, and served in small cups. It's a daily ritual.",
+    practicalExamples: [
+      {
+        situation: "At a café ordering coffee",
+        dialogue: [
+          { speaker: "Waiter", cyrillic: "Шта желите?", latin: "Šta želite?", english: "What would you like?" },
+          { speaker: "Customer", cyrillic: "Желим кафу, молим.", latin: "Želim kafu, molim.", english: "I'd like a coffee, please." },
+          { speaker: "Waiter", cyrillic: "Са млеком или без?", latin: "Sa mlekom ili bez?", english: "With milk or without?" },
+          { speaker: "Customer", cyrillic: "Без млека, хвала.", latin: "Bez mleka, hvala.", english: "Without milk, thank you." },
+        ],
+      },
+      {
+        situation: "At a friend's house",
+        dialogue: [
+          { speaker: "Host", cyrillic: "Гладан си? Имам хлеб и сир.", latin: "Gladan si? Imam hleb i sir.", english: "Are you hungry? I have bread and cheese." },
+          { speaker: "Guest", cyrillic: "Да, гладан сам. Хвала!", latin: "Da, gladan sam. Hvala!", english: "Yes, I'm hungry. Thank you!" },
+        ],
+      },
+    ],
     quiz: [
       { type: "multiple-choice", question: "What does 'hleb' mean?", options: ["milk", "bread", "water", "cheese"], correctIndex: 1 },
       { type: "translate", from: "I am hungry.", fromLang: "english", answer: "Gladan sam.", acceptAlternatives: ["Гладан сам.", "Gladna sam.", "Гладна сам.", "gladan sam", "Gladan sam"] },
@@ -246,6 +339,24 @@ export const lessons: Lesson[] = [
     phrases: [
       { cyrillic: "Који је данас дан?", latin: "Koji je danas dan?", english: "What day is it today?", pronunciation: "KOH-yee yeh DAH-nahs dahn" },
       { cyrillic: "Данас је понедељак.", latin: "Danas je ponedeljak.", english: "Today is Monday.", pronunciation: "DAH-nahs yeh po-NEH-deh-lyahk" },
+    ],
+    practicalExamples: [
+      {
+        situation: "Planning a meeting",
+        dialogue: [
+          { speaker: "Marko", cyrillic: "Који је данас дан?", latin: "Koji je danas dan?", english: "What day is it today?" },
+          { speaker: "Ana", cyrillic: "Данас је среда.", latin: "Danas je sreda.", english: "Today is Wednesday." },
+          { speaker: "Marko", cyrillic: "Можемо ли се видети у петак?", latin: "Možemo li se videti u petak?", english: "Can we meet on Friday?" },
+          { speaker: "Ana", cyrillic: "Да, у петак је добро.", latin: "Da, u petak je dobro.", english: "Yes, Friday is fine." },
+        ],
+      },
+      {
+        situation: "Talking about tomorrow's plans",
+        dialogue: [
+          { speaker: "Jelena", cyrillic: "Шта радиш сутра?", latin: "Šta radiš sutra?", english: "What are you doing tomorrow?" },
+          { speaker: "Stefan", cyrillic: "Сутра је субота, одмарам се.", latin: "Sutra je subota, odmaram se.", english: "Tomorrow is Saturday, I'm resting." },
+        ],
+      },
     ],
     quiz: [
       { type: "multiple-choice", question: "What day is 'sreda'?", options: ["Monday", "Wednesday", "Friday", "Sunday"], correctIndex: 1 },
@@ -281,6 +392,22 @@ export const lessons: Lesson[] = [
     phrases: [
       { cyrillic: "Ова кућа је велика.", latin: "Ova kuća je velika.", english: "This house is big.", pronunciation: "OH-vah KOO-chah yeh VEH-lee-kah" },
       { cyrillic: "Он је добар човек.", latin: "On je dobar čovek.", english: "He is a good man.", pronunciation: "On yeh DOH-bar CHOH-vehk" },
+    ],
+    practicalExamples: [
+      {
+        situation: "Describing a new apartment",
+        dialogue: [
+          { speaker: "Marko", cyrillic: "Какав је твој нови стан?", latin: "Kakav je tvoj novi stan?", english: "What is your new apartment like?" },
+          { speaker: "Ana", cyrillic: "Велик је и леп, али хладан зими.", latin: "Velik je i lep, ali hladan zimi.", english: "It's big and beautiful, but cold in winter." },
+        ],
+      },
+      {
+        situation: "Talking about a person",
+        dialogue: [
+          { speaker: "Maja", cyrillic: "Какав је твој нови шеф?", latin: "Kakav je tvoj novi šef?", english: "What is your new boss like?" },
+          { speaker: "Stefan", cyrillic: "Он је добар човек, али врло стар.", latin: "On je dobar čovek, ali vrlo star.", english: "He's a good man, but very old." },
+        ],
+      },
     ],
     quiz: [
       { type: "multiple-choice", question: "What does 'mali' mean?", options: ["big", "old", "small", "new"], correctIndex: 2 },
@@ -318,6 +445,22 @@ export const lessons: Lesson[] = [
       { cyrillic: "Хоћу да идем.", latin: "Hoću da idem.", english: "I want to go.", pronunciation: "HOH-choo dah EE-dem" },
       { cyrillic: "Можеш ли ми помоћи?", latin: "Možeš li mi pomoći?", english: "Can you help me?", pronunciation: "MOH-zhesh lee mee po-MOH-chee" },
     ],
+    practicalExamples: [
+      {
+        situation: "Daily routine conversation",
+        dialogue: [
+          { speaker: "Nikola", cyrillic: "Шта радиш данас?", latin: "Šta radiš danas?", english: "What are you doing today?" },
+          { speaker: "Ana", cyrillic: "Радим ујутру, а после хоћу да идем у биоскоп.", latin: "Radim ujutru, a posle hoću da idem u bioskop.", english: "I work in the morning, and afterwards I want to go to the cinema." },
+        ],
+      },
+      {
+        situation: "Asking for help",
+        dialogue: [
+          { speaker: "Tourist", cyrillic: "Можеш ли ми помоћи? Хоћу да идем на станицу.", latin: "Možeš li mi pomoći? Hoću da idem na stanicu.", english: "Can you help me? I want to go to the station." },
+          { speaker: "Local", cyrillic: "Да, наравно! Можеш ићи пешке.", latin: "Da, naravno! Možeš ići peške.", english: "Yes, of course! You can go on foot." },
+        ],
+      },
+    ],
     quiz: [
       { type: "multiple-choice", question: "What does 'jesti' mean?", options: ["to drink", "to eat", "to sleep", "to go"], correctIndex: 1 },
       { type: "translate", from: "to speak", fromLang: "english", answer: "govoriti", acceptAlternatives: ["говорити"] },
@@ -353,6 +496,17 @@ export const lessons: Lesson[] = [
       { cyrillic: "Рачун, молим.", latin: "Račun, molim.", english: "The check, please.", pronunciation: "RAH-choon, MOH-leem" },
     ],
     culturalNote: "Tipping in Serbia is customary but not as high as in the US. Rounding up or leaving 10% is standard.",
+    practicalExamples: [
+      {
+        situation: "Ordering at a restaurant",
+        dialogue: [
+          { speaker: "Waiter", cyrillic: "Добро вече! Могу ли да узмем поруџбину?", latin: "Dobro veče! Mogu li da uzmem porudžbinu?", english: "Good evening! Can I take your order?" },
+          { speaker: "Customer", cyrillic: "Да, желим да наручим пилетину и сок, молим.", latin: "Da, želim da naručim piletinu i sok, molim.", english: "Yes, I'd like to order chicken and juice, please." },
+          { speaker: "Waiter", cyrillic: "Наравно. Шта желите за десерт?", latin: "Naravno. Šta želite za desert?", english: "Of course. What would you like for dessert?" },
+          { speaker: "Customer", cyrillic: "Само рачун, молим.", latin: "Samo račun, molim.", english: "Just the check, please." },
+        ],
+      },
+    ],
     quiz: [
       { type: "multiple-choice", question: "How do you ask for the check?", options: ["Račun, molim.", "Jelovnik, molim.", "Hvala.", "Zdravo."], correctIndex: 0 },
       { type: "translate", from: "breakfast", fromLang: "english", answer: "doručak", acceptAlternatives: ["доручак"] },
@@ -384,6 +538,17 @@ export const lessons: Lesson[] = [
       { cyrillic: "Где је...?", latin: "Gde je...?", english: "Where is...?", pronunciation: "Gdeh yeh...?" },
       { cyrillic: "Како да стигнем до...?", latin: "Kako da stignem do...?", english: "How do I get to...?", pronunciation: "KAH-ko dah STEEG-nem doh...?" },
       { cyrillic: "Идите право, па скрените лево.", latin: "Idite pravo, pa skrenite levo.", english: "Go straight, then turn left.", pronunciation: "EE-dee-teh PRAH-vo, pah SKREH-nee-teh LEH-vo" },
+    ],
+    practicalExamples: [
+      {
+        situation: "Asking for directions on the street",
+        dialogue: [
+          { speaker: "Tourist", cyrillic: "Извините, где је најближа станица метроа?", latin: "Izvinite, gde je najbliža stanica metroa?", english: "Excuse me, where is the nearest metro station?" },
+          { speaker: "Local", cyrillic: "Идите право, па скрените десно на другој улици.", latin: "Idite pravo, pa skrenite desno na drugoj ulici.", english: "Go straight, then turn right at the second street." },
+          { speaker: "Tourist", cyrillic: "Да ли је далеко?", latin: "Da li je daleko?", english: "Is it far?" },
+          { speaker: "Local", cyrillic: "Не, врло је близу — пет минута пешке.", latin: "Ne, vrlo je blizu — pet minuta peške.", english: "No, it's very close — five minutes on foot." },
+        ],
+      },
     ],
     quiz: [
       { type: "multiple-choice", question: "What does 'levo' mean?", options: ["right", "straight", "left", "far"], correctIndex: 2 },
