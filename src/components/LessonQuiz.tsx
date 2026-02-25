@@ -32,11 +32,28 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
     setQuestionScripts((prev) => ({ ...prev, [index]: mode }));
 
   const applyScript = (text: string, mode: "both" | "cyrillic" | "latin"): string => {
-    if (mode === "cyrillic") return hasCyrillic(text) ? text : toCyrillic(text);
-    if (mode === "latin") return hasCyrillic(text) ? toLatin(text) : text;
-    const cyr = hasCyrillic(text) ? text : toCyrillic(text);
-    const lat = hasCyrillic(text) ? toLatin(text) : text;
-    return `${cyr} / ${lat}`;
+    const cyr = toCyrillic(text);
+    const lat = toLatin(cyr);
+
+    // If converting to Cyrillic and back to Latin yields the original text,
+    // there are no Cyrillic characters to transform – return as-is (e.g. English words).
+    if (lat === text) return text;
+
+    // If text contains both Cyrillic and Latin characters it is already in a combined
+    // "Cyrillic / Latin" format.  Extract each script separately to avoid duplicates.
+    if (hasCyrillic(text) && /[a-zA-Z]/.test(text)) {
+      const parts = text.split(" / ");
+      const cyrStr = parts.filter(p => hasCyrillic(p)).join(" / ");
+      const latStr = parts.filter(p => !hasCyrillic(p)).join(" / ");
+      if (mode === "cyrillic") return cyrStr || cyr;
+      if (mode === "latin") return latStr || lat;
+      return `${cyrStr || cyr} / ${latStr || lat}`;
+    }
+
+    // Pure Cyrillic text
+    if (mode === "cyrillic") return cyr;
+    if (mode === "latin") return lat;
+    return cyr !== lat ? `${cyr} / ${lat}` : cyr;
   };
 
   const normalizeAnswer = (ans: string) => ans.trim().toLowerCase().replace(/[.!?,;:]/g, "").replace(/\s+/g, " ");
@@ -118,13 +135,14 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
   }
 
   const getCorrectAnswerDisplay = () => {
+    const script = getScript(currentIndex);
     if (question.type === "multiple-choice") {
-      return question.options[question.correctIndex];
+      return applyScript(question.options[question.correctIndex], script);
     }
-    const answer = question.answer;
+    const answer = applyScript(question.answer, script);
     const alts = ("acceptAlternatives" in question ? question.acceptAlternatives : []) || [];
     if (alts.length > 0) {
-      return `${answer} (also accepted: ${alts.join(", ")})`;
+      return `${answer} (also accepted: ${alts.map(alt => applyScript(alt, script)).join(", ")})`;
     }
     return answer;
   };
