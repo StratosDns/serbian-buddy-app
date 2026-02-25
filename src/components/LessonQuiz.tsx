@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { hasCyrillic, toCyrillic, toLatin } from "@/lib/transliterate";
+import SpeakButton from "@/components/SpeakButton";
 
 interface LessonQuizProps {
   questions: QuizQuestion[];
@@ -198,16 +199,29 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
 
           {/* Question text */}
           <h4 className="font-display text-lg font-bold text-foreground mb-4">
-            {question.type === "multiple-choice" && applyScript(question.question, getScript(currentIndex))}
+            {question.type === "multiple-choice" && (
+              <span className="flex items-center gap-2">
+                {applyScript(question.question, getScript(currentIndex))}
+                {hasCyrillic(question.question) && (
+                  <SpeakButton text={question.question} />
+                )}
+              </span>
+            )}
             {question.type === "fill-blank" && (
-              <>Complete the sentence:<br /><span className="text-muted-foreground font-normal text-base">{applyScript(question.sentence, getScript(currentIndex))}</span></>
+              <>Complete the sentence:<br /><span className="text-muted-foreground font-normal text-base flex items-center gap-2">
+                {applyScript(question.sentence, getScript(currentIndex))}
+                <SpeakButton text={question.sentence} />
+              </span></>
             )}
             {question.type === "translate" && (
               <>
                 Translate {question.fromLang === "serbian" ? "from Serbian" : "to Serbian"}:
                 <br />
-                <span className="text-accent font-normal text-xl mt-2 block">
+                <span className="text-accent font-normal text-xl mt-2 flex items-center gap-2">
                   {question.fromLang === "serbian" ? applyScript(question.from, getScript(currentIndex)) : question.from}
+                  {(question.fromLang === "serbian" || hasCyrillic(question.from)) && (
+                    <SpeakButton text={question.from} />
+                  )}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1 block">
                   You can answer in either Cyrillic or Latin script
@@ -251,7 +265,8 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
                   }`}
                 >
                   <RadioGroupItem value={String(i)} />
-                  <span className="text-sm text-foreground">{applyScript(opt, getScript(currentIndex))}</span>
+                  <span className="text-sm text-foreground flex-1">{applyScript(opt, getScript(currentIndex))}</span>
+                  {hasCyrillic(opt) && <SpeakButton text={opt} />}
                 </label>
               ))}
             </RadioGroup>
@@ -293,8 +308,15 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
                 {!isCorrect && (
                   <p className="text-sm text-muted-foreground mt-1">
                     The correct answer is:{" "}
-                    <span className="font-semibold text-foreground">
+                    <span className="font-semibold text-foreground inline-flex items-center gap-1">
                       {getCorrectAnswerDisplay()}
+                      <SpeakButton
+                        text={
+                          question.type === "multiple-choice"
+                            ? question.options[question.correctIndex]
+                            : question.answer
+                        }
+                      />
                     </span>
                   </p>
                 )}
