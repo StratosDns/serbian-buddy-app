@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
+import { hasCyrillic, toCyrillic, toLatin } from "@/lib/transliterate";
 
 interface LessonQuizProps {
   questions: QuizQuestion[];
@@ -21,27 +22,39 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [scriptMode, setScriptMode] = useState<"both" | "cyrillic" | "latin">("both");
+  const [questionScripts, setQuestionScripts] = useState<Record<number, "both" | "cyrillic" | "latin">>({});
 
   const question = questions[currentIndex];
   const progress = ((currentIndex) / questions.length) * 100;
 
+  const getScript = (index: number): "both" | "cyrillic" | "latin" => questionScripts[index] ?? "both";
+  const setScript = (index: number, mode: "both" | "cyrillic" | "latin") =>
+    setQuestionScripts((prev) => ({ ...prev, [index]: mode }));
+
+  const applyScript = (text: string, mode: "both" | "cyrillic" | "latin"): string => {
+    if (mode === "cyrillic") return hasCyrillic(text) ? text : toCyrillic(text);
+    if (mode === "latin") return hasCyrillic(text) ? toLatin(text) : text;
+    const cyr = hasCyrillic(text) ? text : toCyrillic(text);
+    const lat = hasCyrillic(text) ? toLatin(text) : text;
+    return `${cyr} / ${lat}`;
+  };
+
   const normalizeAnswer = (ans: string) => ans.trim().toLowerCase().replace(/[.!?,;:]/g, "").replace(/\s+/g, " ");
+
+  const normalizeForCheck = (ans: string) => normalizeAnswer(hasCyrillic(ans) ? toLatin(ans) : ans);
 
   const checkAnswer = () => {
     let correct = false;
     if (question.type === "multiple-choice") {
       correct = parseInt(selectedOption) === question.correctIndex;
     } else if (question.type === "fill-blank") {
-      const userAns = normalizeAnswer(textAnswer);
-      correct = normalizeAnswer(question.answer) === userAns ||
-        (question.acceptAlternatives || []).some(alt => normalizeAnswer(alt) === userAns);
+      correct = normalizeForCheck(question.answer) === normalizeForCheck(textAnswer) ||
+        (question.acceptAlternatives || []).some(alt => normalizeForCheck(alt) === normalizeForCheck(textAnswer));
     } else if (question.type === "translate") {
-      const userAns = normalizeAnswer(textAnswer);
       correct =
-        normalizeAnswer(question.answer) === userAns ||
+        normalizeForCheck(question.answer) === normalizeForCheck(textAnswer) ||
         (question.acceptAlternatives || []).some(
-          (alt) => normalizeAnswer(alt) === userAns
+          (alt) => normalizeForCheck(alt) === normalizeForCheck(textAnswer)
         );
     }
     setIsCorrect(correct);
@@ -118,29 +131,13 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
 
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      {/* Progress & Script toggle */}
+      {/* Progress */}
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
           <span>Question {currentIndex + 1} of {questions.length}</span>
           <span>Score: {score}/{currentIndex + (showResult ? 1 : 0)}</span>
         </div>
         <Progress value={progress} className="h-2" />
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-xs text-muted-foreground mr-1">Answer in:</span>
-          {(["both", "cyrillic", "latin"] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setScriptMode(mode)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                scriptMode === mode
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {mode === "both" ? "Either Script" : mode === "cyrillic" ? "Cyrillic" : "Latin"}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Question */}
@@ -152,30 +149,50 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
           exit={{ opacity: 0, x: -20 }}
           className="p-6"
         >
-          {/* Question type badge */}
-          <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent mb-3">
-            {question.type === "multiple-choice"
-              ? "Multiple Choice"
-              : question.type === "fill-blank"
-              ? "Fill in the Blank"
-              : question.type === "translate"
-              ? "Translate"
-              : "Form a Sentence"}
-          </span>
+          {/* Question type badge + per-question script toggle */}
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+              {question.type === "multiple-choice"
+                ? "Multiple Choice"
+                : question.type === "fill-blank"
+                ? "Fill in the Blank"
+                : question.type === "translate"
+                ? "Translate"
+                : "Form a Sentence"}
+            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground mr-1">Script:</span>
+              {(["both", "cyrillic", "latin"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setScript(currentIndex, mode)}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                    getScript(currentIndex) === mode
+                      ? "bg-accent text-accent-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {mode === "both" ? "Both" : mode === "cyrillic" ? "Cyrillic" : "Latin"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Question text */}
           <h4 className="font-display text-lg font-bold text-foreground mb-4">
-            {question.type === "multiple-choice" && question.question}
+            {question.type === "multiple-choice" && applyScript(question.question, getScript(currentIndex))}
             {question.type === "fill-blank" && (
-              <>Complete the sentence:<br /><span className="text-muted-foreground font-normal text-base">{question.sentence}</span></>
+              <>Complete the sentence:<br /><span className="text-muted-foreground font-normal text-base">{applyScript(question.sentence, getScript(currentIndex))}</span></>
             )}
             {question.type === "translate" && (
               <>
                 Translate {question.fromLang === "serbian" ? "from Serbian" : "to Serbian"}:
                 <br />
-                <span className="text-accent font-normal text-xl mt-2 block">{question.from}</span>
+                <span className="text-accent font-normal text-xl mt-2 block">
+                  {question.fromLang === "serbian" ? applyScript(question.from, getScript(currentIndex)) : question.from}
+                </span>
                 <span className="text-xs text-muted-foreground mt-1 block">
-                  You can answer in {scriptMode === "both" ? "either Cyrillic or Latin" : scriptMode === "cyrillic" ? "Cyrillic" : "Latin"} script
+                  You can answer in either Cyrillic or Latin script
                 </span>
               </>
             )}
@@ -216,7 +233,7 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
                   }`}
                 >
                   <RadioGroupItem value={String(i)} />
-                  <span className="text-sm text-foreground">{opt}</span>
+                  <span className="text-sm text-foreground">{applyScript(opt, getScript(currentIndex))}</span>
                 </label>
               ))}
             </RadioGroup>
