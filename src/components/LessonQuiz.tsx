@@ -8,10 +8,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { hasCyrillic, toCyrillic, toLatin } from "@/lib/transliterate";
 import SpeakButton from "@/components/SpeakButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveQuizProgress } from "@/lib/quizProgress";
 
 interface LessonQuizProps {
   questions: QuizQuestion[];
   lessonTitle: string;
+  lessonId: string;
 }
 
 interface AnswerState {
@@ -21,7 +24,8 @@ interface AnswerState {
   isCorrect: boolean;
 }
 
-const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
+const LessonQuiz = ({ questions, lessonTitle, lessonId }: LessonQuizProps) => {
+  const { user } = useAuth();
   const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>(questions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
@@ -29,6 +33,8 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
   const [roundScore, setRoundScore] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [questionScripts, setQuestionScripts] = useState<Record<number, "both" | "cyrillic" | "latin">>({});
+  const [progressSaved, setProgressSaved] = useState(false);
+  const [progressError, setProgressError] = useState(false);
 
   const question = activeQuestions[currentIndex];
   const progress = ((currentIndex) / activeQuestions.length) * 100;
@@ -103,6 +109,20 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
       setCurrentIndex(i => i + 1);
       setShowHint(false);
     } else {
+      const currentAnswers = { ...answers };
+      const failedIndices = activeQuestions
+        .map((_, i) => i)
+        .filter(i => currentAnswers[i] && !currentAnswers[i].isCorrect);
+      const score = Object.values(currentAnswers).filter(a => a.submitted && a.isCorrect).length;
+      const allCorrect = failedIndices.length === 0;
+
+      if (user) {
+        setProgressSaved(false);
+        setProgressError(false);
+        saveQuizProgress(user.id, lessonId, score, activeQuestions.length, allCorrect, failedIndices)
+          .then(() => setProgressSaved(true))
+          .catch(() => setProgressError(true));
+      }
       setCompleted(true);
     }
   };
@@ -123,6 +143,8 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
     setCompleted(false);
     setShowHint(false);
     setQuestionScripts({});
+    setProgressSaved(false);
+    setProgressError(false);
   };
 
   const restart = () => {
@@ -133,6 +155,8 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
     setCompleted(false);
     setShowHint(false);
     setQuestionScripts({});
+    setProgressSaved(false);
+    setProgressError(false);
   };
 
   const canSubmit = question?.type === "multiple-choice" ? selectedOption !== "" : textAnswer.trim() !== "";
@@ -165,6 +189,15 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
             ? `Almost there! ${failedCount} question${failedCount !== 1 ? "s" : ""} remaining. Keep going!`
             : `You got ${roundScore}/${activeQuestions.length} correct! Retry the ones you missed to complete this quiz.`}
         </p>
+        {user && progressSaved && (
+          <p className="text-xs text-success mb-4">Progress saved ✓</p>
+        )}
+        {user && progressError && (
+          <p className="text-xs text-destructive mb-4">Could not save progress. Please check your connection.</p>
+        )}
+        {!user && (
+          <p className="text-xs text-muted-foreground mb-4">Log in to save your progress</p>
+        )}
         <div className="flex flex-wrap gap-3 justify-center">
           {!allCorrect && (
             <Button onClick={retryFailed} className="gap-2">

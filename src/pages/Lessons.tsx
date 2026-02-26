@@ -2,13 +2,32 @@ import { lessons, levelLabels, levelColors, type LessonLevel } from "@/data/less
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { BookOpen, ChevronRight, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { getQuizProgress } from "@/lib/quizProgress";
+import type { QuizProgressRecord } from "@/lib/quizProgress";
 
 const levels: LessonLevel[] = ["beginner", "elementary", "pre-intermediate", "intermediate", "upper-intermediate"];
 
 const Lessons = () => {
   const [activeLevel, setActiveLevel] = useState<LessonLevel | "all">("all");
+  const { user } = useAuth();
+  const [progressMap, setProgressMap] = useState<Record<string, QuizProgressRecord>>({});
+
+  useEffect(() => {
+    if (user) {
+      getQuizProgress(user.id)
+        .then((records) => {
+          const map: Record<string, QuizProgressRecord> = {};
+          records.forEach((r) => { map[r.lesson_id] = r; });
+          setProgressMap(map);
+        })
+        .catch(() => setProgressMap({}));
+    } else {
+      setProgressMap({});
+    }
+  }, [user]);
 
   const filtered = activeLevel === "all" ? lessons : lessons.filter((l) => l.level === activeLevel);
 
@@ -64,9 +83,17 @@ const Lessons = () => {
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-display font-bold">
                     {lesson.number}
                   </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[lesson.level]}`}>
-                    {levelLabels[lesson.level]}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {progressMap[lesson.id]?.completed && (
+                      <CheckCircle className="h-4 w-4 text-success" title="Completed" />
+                    )}
+                    {progressMap[lesson.id] && !progressMap[lesson.id].completed && (
+                      <span className="text-xs text-accent font-medium" title="In Progress" aria-label="In Progress">🔄</span>
+                    )}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[lesson.level]}`}>
+                      {levelLabels[lesson.level]}
+                    </span>
+                  </div>
                 </div>
                 <h3 className="font-display text-lg font-bold text-foreground mb-1 group-hover:text-accent transition-colors">
                   {lesson.title}
@@ -75,7 +102,14 @@ const Lessons = () => {
                 <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
                   <BookOpen className="h-3 w-3" />
                   <span>{lesson.vocabulary.length} words · {lesson.phrases.length} phrases</span>
-                  <ChevronRight className="ml-auto h-4 w-4 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {progressMap[lesson.id] && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      Best: {progressMap[lesson.id].score}/{progressMap[lesson.id].total_questions}
+                    </span>
+                  )}
+                  {!progressMap[lesson.id] && (
+                    <ChevronRight className="ml-auto h-4 w-4 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
                 </div>
               </Link>
             </motion.div>
