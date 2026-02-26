@@ -194,7 +194,7 @@ const LessonDetail = () => {
                 {quizProgress.completed ? (
                   <><CheckCircle className="h-4 w-4 text-success shrink-0" /> Completed — best score: {quizProgress.score}/{quizProgress.total_questions}</>
                 ) : (
-                  <>🔄 In Progress — best score: {quizProgress.score}/{quizProgress.total_questions}</>
+                  <><span aria-label="In Progress">🔄</span> In Progress — best score: {quizProgress.score}/{quizProgress.total_questions}</>
                 )}
               </div>
             )}

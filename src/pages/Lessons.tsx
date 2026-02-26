@@ -88,7 +88,7 @@ const Lessons = () => {
                       <CheckCircle className="h-4 w-4 text-success" title="Completed" />
                     )}
                     {progressMap[lesson.id] && !progressMap[lesson.id].completed && (
-                      <span className="text-xs text-accent font-medium">🔄</span>
+                      <span className="text-xs text-accent font-medium" title="In Progress" aria-label="In Progress">🔄</span>
                     )}
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[lesson.level]}`}>
                       {levelLabels[lesson.level]}
