@@ -1,13 +1,16 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { lessons, levelLabels, levelColors } from "@/data/lessons";
 import Layout from "@/components/Layout";
 import LessonQuiz from "@/components/LessonQuiz";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Volume2, BookOpen, GraduationCap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Volume2, BookOpen, GraduationCap, CheckCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SpeakButton from "@/components/SpeakButton";
 import { speakSerbian } from "@/lib/speak";
+import { useAuth } from "@/contexts/AuthContext";
+import { getQuizProgressForLesson } from "@/lib/quizProgress";
+import type { QuizProgressRecord } from "@/lib/quizProgress";
 
 const LessonDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +19,18 @@ const LessonDetail = () => {
   const prevLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
   const nextLesson = lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : null;
   const [scriptMode, setScriptMode] = useState<"both" | "cyrillic" | "latin">("both");
+  const { user } = useAuth();
+  const [quizProgress, setQuizProgress] = useState<QuizProgressRecord | null>(null);
+
+  useEffect(() => {
+    if (user && id) {
+      getQuizProgressForLesson(user.id, id)
+        .then(setQuizProgress)
+        .catch(() => setQuizProgress(null));
+    } else {
+      setQuizProgress(null);
+    }
+  }, [user, id]);
 
   if (!lesson) {
     return (
@@ -84,6 +99,7 @@ const LessonDetail = () => {
             </TabsTrigger>
             <TabsTrigger value="quiz" className="gap-2">
               <GraduationCap className="h-4 w-4" /> Quiz
+              {quizProgress?.completed && <CheckCircle className="h-3.5 w-3.5 text-success" />}
             </TabsTrigger>
           </TabsList>
 
@@ -173,8 +189,17 @@ const LessonDetail = () => {
           </TabsContent>
 
           <TabsContent value="quiz" className="mt-6">
+            {quizProgress && (
+              <div className="mb-4 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground flex items-center gap-2">
+                {quizProgress.completed ? (
+                  <><CheckCircle className="h-4 w-4 text-success shrink-0" /> Completed — best score: {quizProgress.score}/{quizProgress.total_questions}</>
+                ) : (
+                  <>🔄 In Progress — best score: {quizProgress.score}/{quizProgress.total_questions}</>
+                )}
+              </div>
+            )}
             {lesson.quiz.length > 0 ? (
-              <LessonQuiz questions={lesson.quiz} lessonTitle={lesson.title} />
+              <LessonQuiz questions={lesson.quiz} lessonTitle={lesson.title} lessonId={lesson.id} />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <GraduationCap className="mx-auto h-12 w-12 mb-4 opacity-50" />

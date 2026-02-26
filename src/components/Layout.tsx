@@ -3,6 +3,7 @@ import { BookOpen, Languages, GraduationCap, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PronunciationBox from "@/components/PronunciationBox";
+import UserMenu from "@/components/UserMenu";
 
 const navItems = [
   { path: "/", label: "Home", icon: BookOpen },
@@ -47,13 +48,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             })}
           </nav>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex">
+              <UserMenu />
+            </div>
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile nav */}
@@ -84,6 +90,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     </Link>
                   );
                 })}
+                <div className="px-2 py-2 border-t border-border mt-1">
+                  <UserMenu />
+                </div>
               </div>
             </motion.nav>
           )}
