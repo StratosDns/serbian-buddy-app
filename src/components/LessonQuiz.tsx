@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { QuizQuestion } from "@/data/lessons";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, ArrowRight, RotateCcw, Trophy, Lightbulb } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw, Trophy, Lightbulb, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,19 +14,34 @@ interface LessonQuizProps {
   lessonTitle: string;
 }
 
+interface AnswerState {
+  selectedOption: string;
+  textAnswer: string;
+  submitted: boolean;
+  isCorrect: boolean;
+}
+
 const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
+  const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>(questions);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string>("");
-  const [textAnswer, setTextAnswer] = useState("");
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [score, setScore] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
   const [completed, setCompleted] = useState(false);
+  const [roundScore, setRoundScore] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [questionScripts, setQuestionScripts] = useState<Record<number, "both" | "cyrillic" | "latin">>({});
 
-  const question = questions[currentIndex];
-  const progress = ((currentIndex) / questions.length) * 100;
+  const question = activeQuestions[currentIndex];
+  const progress = ((currentIndex) / activeQuestions.length) * 100;
+  const isRetryRound = activeQuestions.length < questions.length;
+
+  const currentAnswer: AnswerState = answers[currentIndex] ?? {
+    selectedOption: "",
+    textAnswer: "",
+    submitted: false,
+    isCorrect: false,
+  };
+
+  const { selectedOption, textAnswer, submitted: showResult, isCorrect } = currentAnswer;
 
   const getScript = (index: number): "both" | "cyrillic" | "latin" => questionScripts[index] ?? "both";
   const setScript = (index: number, mode: "both" | "cyrillic" | "latin") =>
@@ -36,30 +51,34 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
     const cyr = toCyrillic(text);
     const lat = toLatin(cyr);
 
-    // If converting to Cyrillic and back to Latin yields the original text,
-    // there are no Cyrillic characters to transform – return as-is (e.g. English words).
     if (lat === text) return text;
 
-    // If text contains both Cyrillic and Latin characters it is already in a combined
-    // "Cyrillic / Latin" format.  Extract each script separately to avoid duplicates.
     if (hasCyrillic(text) && /[a-zA-Z]/.test(text)) {
       const parts = text.split(" / ");
       const cyrStr = parts.filter(p => hasCyrillic(p)).join(" / ");
       const latStr = parts.filter(p => !hasCyrillic(p)).join(" / ");
       if (mode === "cyrillic") return cyrStr || cyr;
       if (mode === "latin") return latStr || lat;
-      return `${cyrStr || cyr} / ${latStr || lat}`;
+      return `${latStr || lat} / ${cyrStr || cyr}`;
     }
 
-    // Pure Cyrillic text
     if (mode === "cyrillic") return cyr;
     if (mode === "latin") return lat;
-    return cyr !== lat ? `${cyr} / ${lat}` : cyr;
+    return cyr !== lat ? `${lat} / ${cyr}` : cyr;
   };
 
   const normalizeAnswer = (ans: string) => ans.trim().toLowerCase().replace(/[.!?,;:]/g, "").replace(/\s+/g, " ");
-
   const normalizeForCheck = (ans: string) => normalizeAnswer(hasCyrillic(ans) ? toLatin(ans) : ans);
+
+  const setSelectedOption = (val: string) => {
+    if (currentAnswer.submitted) return;
+    setAnswers(prev => ({ ...prev, [currentIndex]: { ...currentAnswer, selectedOption: val } }));
+  };
+
+  const setTextAnswer = (val: string) => {
+    if (currentAnswer.submitted) return;
+    setAnswers(prev => ({ ...prev, [currentIndex]: { ...currentAnswer, textAnswer: val } }));
+  };
 
   const checkAnswer = () => {
     let correct = false;
@@ -75,38 +94,54 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
           (alt) => normalizeForCheck(alt) === normalizeForCheck(textAnswer)
         );
     }
-    setIsCorrect(correct);
-    if (correct) setScore((s) => s + 1);
-    setShowResult(true);
+    setAnswers(prev => ({ ...prev, [currentIndex]: { ...currentAnswer, submitted: true, isCorrect: correct } }));
+    if (correct) setRoundScore(s => s + 1);
   };
 
-  const nextQuestion = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((i) => i + 1);
-      setSelectedOption("");
-      setTextAnswer("");
-      setShowResult(false);
+  const goNext = () => {
+    if (currentIndex < activeQuestions.length - 1) {
+      setCurrentIndex(i => i + 1);
       setShowHint(false);
     } else {
       setCompleted(true);
     }
   };
 
-  const restart = () => {
+  const goPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(i => i - 1);
+      setShowHint(false);
+    }
+  };
+
+  const retryFailed = () => {
+    const failed = activeQuestions.filter((_, i) => answers[i] && !answers[i].isCorrect);
+    setActiveQuestions(failed);
     setCurrentIndex(0);
-    setSelectedOption("");
-    setTextAnswer("");
-    setShowResult(false);
-    setIsCorrect(false);
-    setScore(0);
+    setAnswers({});
+    setRoundScore(0);
     setCompleted(false);
     setShowHint(false);
+    setQuestionScripts({});
+  };
+
+  const restart = () => {
+    setActiveQuestions(questions);
+    setCurrentIndex(0);
+    setAnswers({});
+    setRoundScore(0);
+    setCompleted(false);
+    setShowHint(false);
+    setQuestionScripts({});
   };
 
   const canSubmit = question?.type === "multiple-choice" ? selectedOption !== "" : textAnswer.trim() !== "";
-  const scorePercent = Math.round((score / questions.length) * 100);
 
   if (completed) {
+    const failedCount = activeQuestions.filter((_, i) => answers[i] && !answers[i].isCorrect).length;
+    const allCorrect = failedCount === 0;
+    const scorePercent = Math.round((roundScore / activeQuestions.length) * 100);
+
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -114,23 +149,32 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
         className="rounded-2xl border border-border bg-card p-8 text-center"
       >
         <Trophy className="mx-auto h-16 w-16 text-accent mb-4" />
-        <h3 className="font-display text-2xl font-bold text-foreground mb-2">Quiz Complete!</h3>
+        <h3 className="font-display text-2xl font-bold text-foreground mb-2">
+          {allCorrect ? "🎉 All Questions Mastered!" : "Quiz Round Complete!"}
+        </h3>
         <p className="text-muted-foreground mb-4">
-          You scored <span className="font-bold text-foreground">{score}/{questions.length}</span> ({scorePercent}%)
+          You scored <span className="font-bold text-foreground">{roundScore}/{activeQuestions.length}</span> ({scorePercent}%)
         </p>
         <div className="mx-auto max-w-xs mb-6">
           <Progress value={scorePercent} className="h-3" />
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          {scorePercent >= 80
-            ? "🎉 Excellent! You've mastered this lesson!"
-            : scorePercent >= 60
-            ? "👍 Good job! Review the vocabulary and try again for a higher score."
-            : "📚 Keep practicing! Review the lesson material and try again."}
+          {allCorrect
+            ? "🎉 Perfect! You've mastered all questions in this quiz!"
+            : isRetryRound
+            ? `Almost there! ${failedCount} question${failedCount !== 1 ? "s" : ""} remaining. Keep going!`
+            : `You got ${roundScore}/${activeQuestions.length} correct! Retry the ones you missed to complete this quiz.`}
         </p>
-        <Button onClick={restart} variant="outline" className="gap-2">
-          <RotateCcw className="h-4 w-4" /> Try Again
-        </Button>
+        <div className="flex flex-wrap gap-3 justify-center">
+          {!allCorrect && (
+            <Button onClick={retryFailed} className="gap-2">
+              <RefreshCw className="h-4 w-4" /> Retry Failed Questions
+            </Button>
+          )}
+          <Button onClick={restart} variant="outline" className="gap-2">
+            <RotateCcw className="h-4 w-4" /> Try Again
+          </Button>
+        </div>
       </motion.div>
     );
   }
@@ -153,8 +197,8 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
       {/* Progress */}
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-          <span>Question {currentIndex + 1} of {questions.length}</span>
-          <span>Score: {score}/{currentIndex + (showResult ? 1 : 0)}</span>
+          <span>Question {currentIndex + 1} of {activeQuestions.length}{isRetryRound && " (retry)"}</span>
+          <span>Score: {roundScore}/{Object.values(answers).filter(a => a.submitted).length}</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
@@ -325,20 +369,30 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex justify-end">
-            {!showResult ? (
-              <Button onClick={checkAnswer} disabled={!canSubmit} className="gap-2">
-                Check Answer
-              </Button>
-            ) : (
-              <Button onClick={nextQuestion} className="gap-2">
-                {currentIndex < questions.length - 1 ? (
-                  <>Next <ArrowRight className="h-4 w-4" /></>
-                ) : (
-                  <>See Results <Trophy className="h-4 w-4" /></>
-                )}
-              </Button>
-            )}
+          <div className="mt-6 flex items-center justify-between">
+            <Button
+              onClick={goPrev}
+              variant="outline"
+              className="gap-2"
+              disabled={currentIndex === 0}
+            >
+              <ArrowLeft className="h-4 w-4" /> Previous
+            </Button>
+            <div>
+              {!showResult ? (
+                <Button onClick={checkAnswer} disabled={!canSubmit} className="gap-2">
+                  Check Answer
+                </Button>
+              ) : (
+                <Button onClick={goNext} className="gap-2">
+                  {currentIndex < activeQuestions.length - 1 ? (
+                    <>Next <ArrowRight className="h-4 w-4" /></>
+                  ) : (
+                    <>See Results <Trophy className="h-4 w-4" /></>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -347,3 +401,4 @@ const LessonQuiz = ({ questions, lessonTitle }: LessonQuizProps) => {
 };
 
 export default LessonQuiz;
+

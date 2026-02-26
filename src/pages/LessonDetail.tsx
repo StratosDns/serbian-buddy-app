@@ -33,7 +33,7 @@ const LessonDetail = () => {
     if (scriptMode === "latin") return <>{latin}</>;
     return (
       <>
-        {cyrillic} <span className="text-muted-foreground font-normal text-sm ml-1">({latin})</span>
+        {latin} <span className="text-muted-foreground font-normal text-sm ml-1">({cyrillic})</span>
       </>
     );
   };
@@ -142,6 +142,33 @@ const LessonDetail = () => {
                 <h3 className="font-display text-lg font-bold mb-2">🇷🇸 Cultural Note</h3>
                 <p className="text-sm leading-relaxed opacity-90">{lesson.culturalNote}</p>
               </motion.div>
+            )}
+
+            {/* Practical Examples */}
+            {lesson.practicalExamples && lesson.practicalExamples.length > 0 && (
+              <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">🗣️ In Context</h2>
+                <div className="space-y-4">
+                  {lesson.practicalExamples.map((example, i) => (
+                    <div key={i} className="rounded-xl border border-border bg-card p-4">
+                      <p className="text-xs font-semibold text-accent uppercase tracking-wide mb-3">{example.situation}</p>
+                      <div className="space-y-2">
+                        {example.dialogue.map((line, j) => (
+                          <div key={j} className="flex gap-3 items-start">
+                            <span className="shrink-0 text-xs font-semibold text-muted-foreground w-16 pt-0.5">{line.speaker}:</span>
+                            <div>
+                              <p className="font-display font-bold text-foreground text-sm leading-snug">
+                                {renderSerbian(line.cyrillic, line.latin)}
+                              </p>
+                              <p className="text-xs text-muted-foreground italic">{line.english}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.section>
             )}
           </TabsContent>
 
