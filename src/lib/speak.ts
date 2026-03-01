@@ -64,16 +64,28 @@ export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean)
   return toSerbianSpeechFallback(latinText);
 }
 
-function buildUtterance(text: string, voice: SpeechSynthesisVoice | null): SpeechSynthesisUtterance {
+function buildUtterance(
+  text: string,
+  voice: SpeechSynthesisVoice | null,
+  fallbackVoice: SpeechSynthesisVoice | null,
+): SpeechSynthesisUtterance {
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = voice?.lang ?? "sr-RS";
   utterance.rate = 0.85;
   utterance.pitch = 1;
 
   if (voice) {
     utterance.voice = voice;
+    utterance.lang = voice.lang;
+    return utterance;
   }
 
+  if (fallbackVoice) {
+    utterance.voice = fallbackVoice;
+    utterance.lang = fallbackVoice.lang;
+    return utterance;
+  }
+
+  utterance.lang = "en-US";
   return utterance;
 }
 
@@ -94,17 +106,25 @@ export function speakSerbian(text: string): void {
     synth.resume();
   }
 
-  // Reset current playback so repeated clicks replay reliably.
-  synth.cancel();
+  // Only cancel when there is active/pending speech, since canceling while idle can
+  // make some engines flaky for immediate subsequent speaks.
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+  }
 
   const voices = synth.getVoices();
   const serbianVoice = pickSerbianVoice(voices);
+  const fallbackVoice = voices.find((voice) => voice.default) ?? voices[0] ?? null;
   const speechText = prepareSerbianSpeechText(text, Boolean(serbianVoice));
 
-  synth.speak(buildUtterance(speechText, serbianVoice));
+  const speakNow = () => {
+    const utterance = buildUtterance(speechText, serbianVoice, fallbackVoice);
+    synth.speak(utterance);
+  };
 
-  // Some engines occasionally drop playback right after cancel(). Retry the *current*
-  // request only, with a fresh utterance instance.
+  speakNow();
+
+  // If an engine drops this attempt, retry once for the latest request only.
   retryTimeoutId = window.setTimeout(() => {
     if (requestId !== speechRequestId) {
       return;
@@ -114,7 +134,6 @@ export function speakSerbian(text: string): void {
       return;
     }
 
-    synth.cancel();
-    synth.speak(buildUtterance(speechText, serbianVoice));
-  }, 150);
+    speakNow();
+  }, 180);
 }
