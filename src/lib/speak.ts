@@ -1,35 +1,78 @@
 import { hasCyrillic, toLatin } from "@/lib/transliterate";
 
+const SERBIAN_FALLBACK_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/Dž/g, "J"],
+  [/dž/g, "j"],
+  [/Lj/g, "Ly"],
+  [/lj/g, "ly"],
+  [/Nj/g, "Ny"],
+  [/nj/g, "ny"],
+  [/Đ/g, "Dj"],
+  [/đ/g, "dj"],
+  [/Ž/g, "Zh"],
+  [/ž/g, "zh"],
+  [/Š/g, "Sh"],
+  [/š/g, "sh"],
+  [/Č/g, "Ch"],
+  [/č/g, "ch"],
+  [/Ć/g, "Ch"],
+  [/ć/g, "ch"],
+];
+
 export function cleanSpeakText(text: string): string {
   let cleaned = text;
 
-  // If text contains " / " dual-script separator, keep only the first part
   if (cleaned.includes(" / ")) {
     cleaned = cleaned.split(" / ")[0];
   }
 
-  // Remove parenthetical content (e.g. English translations like "(This is my book.)")
   cleaned = cleaned.replace(/\([^)]*\)/g, "");
-
-  // Remove blank placeholders (sequences of underscores)
   cleaned = cleaned.replace(/_+/g, "");
-
-  // Collapse multiple spaces and trim
   cleaned = cleaned.replace(/\s+/g, " ").trim();
 
   return cleaned;
 }
 
-export function speakSerbian(text: string): void {
-  window.speechSynthesis.cancel();
+function applyFallbackPronunciation(text: string): string {
+  return SERBIAN_FALLBACK_REPLACEMENTS.reduce((result, [pattern, replacement]) => {
+    return result.replace(pattern, replacement);
+  }, text);
+}
 
+export function hasSerbianVoice(voices: SpeechSynthesisVoice[]): boolean {
+  return voices.some((voice) => voice.lang.toLowerCase().startsWith("sr"));
+}
+
+export function prepareSerbianSpeechText(text: string, shouldFallback: boolean): string {
   const cleaned = cleanSpeakText(text);
   const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
 
-  const utterance = new SpeechSynthesisUtterance(latinText);
+  if (!shouldFallback) {
+    return latinText;
+  }
+
+  return applyFallbackPronunciation(latinText);
+}
+
+export function speakSerbian(text: string): void {
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  const fallback = !hasSerbianVoice(synth.getVoices());
+  const speechText = prepareSerbianSpeechText(text, fallback);
+
+  if (!speechText) {
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(speechText);
   utterance.lang = "sr-RS";
   utterance.rate = 0.85;
   utterance.pitch = 1;
 
-  window.speechSynthesis.speak(utterance);
+  // This is the pre-dd15299 stable behavior that allowed repeated playback.
+  synth.cancel();
+  synth.speak(utterance);
 }
