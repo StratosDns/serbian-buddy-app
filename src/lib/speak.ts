@@ -66,12 +66,7 @@ export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean)
   return toSerbianSpeechFallback(latinText);
 }
 
-  if (hasSerbianVoice) {
-    return latinText;
-  }
 
-  return toSerbianSpeechFallback(latinText);
-}
 
 export function speakSerbian(text: string): void {
   if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
