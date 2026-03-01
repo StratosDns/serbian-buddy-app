@@ -1,27 +1,6 @@
 import { hasCyrillic, toLatin } from "@/lib/transliterate";
 
-const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
-  [/Dž/g, "J"],
-  [/dž/g, "j"],
-  [/Lj/g, "Ly"],
-  [/lj/g, "ly"],
-  [/Nj/g, "Ny"],
-  [/nj/g, "ny"],
-  [/Đ/g, "Dj"],
-  [/đ/g, "dj"],
-  [/Č/g, "Ch"],
-  [/č/g, "ch"],
-  [/Ć/g, "Ch"],
-  [/ć/g, "ch"],
-  [/Š/g, "Sh"],
-  [/š/g, "sh"],
-  [/Ž/g, "Zh"],
-  [/ž/g, "zh"],
-];
-
-let retryTimeoutId: number | null = null;
-let keepAliveId: number | null = null;
-let speechRequestId = 0;
+let currentAudio: HTMLAudioElement | null = null;
 
 export function cleanSpeakText(text: string): string {
   let cleaned = text;
@@ -43,138 +22,28 @@ export function cleanSpeakText(text: string): string {
   return cleaned;
 }
 
-function toSerbianSpeechFallback(latinText: string): string {
-  return SERBIAN_LATIN_FALLBACK_MAP.reduce((result, [pattern, replacement]) => {
-    return result.replace(pattern, replacement);
-  }, latinText);
-}
-
-function pickSerbianVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  return voices.find((voice) => voice.lang.toLowerCase().startsWith("sr")) ?? null;
-}
-
-export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean): string {
+export function prepareSerbianSpeechText(text: string): string {
   const cleaned = cleanSpeakText(text);
-  const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
-
-  if (hasSerbianVoice) {
-    return latinText;
-  }
-
-  // Fallback for environments without Serbian voices where diacritics are often skipped.
-  return toSerbianSpeechFallback(latinText);
-}
-
-function buildUtterance(
-  text: string,
-  voice: SpeechSynthesisVoice | null,
-  fallbackVoice: SpeechSynthesisVoice | null,
-): SpeechSynthesisUtterance {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.85;
-  utterance.pitch = 1;
-
-  if (voice) {
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
-    return utterance;
-  }
-
-  if (fallbackVoice) {
-    utterance.voice = fallbackVoice;
-    utterance.lang = fallbackVoice.lang;
-    return utterance;
-  }
-
-  utterance.lang = "en-US";
-  return utterance;
-}
-
-/**
- * Chrome has a long-standing bug where speechSynthesis stops working after
- * the first utterance. Two workarounds are combined here:
- *
- * 1. **Keep-alive timer** — While speech is active, periodically call
- *    `synth.pause()` then `synth.resume()` every 5 seconds. This prevents
- *    Chrome from internally "timing out" the speech session.
- *
- * 2. **onend cleanup** — When an utterance finishes, we explicitly cancel
- *    the synth and clear all timers so the engine is in a clean idle state
- *    ready for the next request.
- */
-function startKeepAlive(synth: SpeechSynthesis): void {
-  stopKeepAlive();
-  keepAliveId = window.setInterval(() => {
-    if (synth.speaking) {
-      synth.pause();
-      synth.resume();
-    }
-  }, 5000);
-}
-
-function stopKeepAlive(): void {
-  if (keepAliveId !== null) {
-    window.clearInterval(keepAliveId);
-    keepAliveId = null;
-  }
+  return hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
 }
 
 export function speakSerbian(text: string): void {
-  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
-    return;
+  const speechText = prepareSerbianSpeechText(text);
+  if (!speechText) return;
+
+  // Stop any currently playing audio
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
   }
 
-  const synth = window.speechSynthesis;
-  const requestId = ++speechRequestId;
+  const url =
+    `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=sr&q=${encodeURIComponent(speechText)}`;
 
-  // Clear any pending retry
-  if (retryTimeoutId) {
-    window.clearTimeout(retryTimeoutId);
-    retryTimeoutId = null;
-  }
+  const audio = new Audio(url);
+  currentAudio = audio;
 
-  // Stop any previous keep-alive
-  stopKeepAlive();
-
-  // Always fully reset the engine before speaking
-  synth.cancel();
-
-  const voices = synth.getVoices();
-  const serbianVoice = pickSerbianVoice(voices);
-  const fallbackVoice = voices.find((voice) => voice.default) ?? voices[0] ?? null;
-  const speechText = prepareSerbianSpeechText(text, Boolean(serbianVoice));
-
-  const doSpeak = () => {
-    if (requestId !== speechRequestId) return;
-
-    // Cancel again right before speaking to ensure clean state
-    synth.cancel();
-
-    const utterance = buildUtterance(speechText, serbianVoice, fallbackVoice);
-
-    // When speech ends (or errors), clean up so the next call works
-    utterance.onend = () => {
-      stopKeepAlive();
-    };
-    utterance.onerror = () => {
-      stopKeepAlive();
-    };
-
-    // Start the keep-alive timer to prevent Chrome from killing the session
-    startKeepAlive(synth);
-
-    synth.speak(utterance);
-  };
-
-  // Use a setTimeout to let the cancel() above fully propagate
-  window.setTimeout(doSpeak, 100);
-
-  // Safety retry: if the engine silently dropped the utterance, try again
-  retryTimeoutId = window.setTimeout(() => {
-    if (requestId !== speechRequestId) return;
-    if (synth.speaking || synth.pending) return;
-
-    // Engine dropped it — try once more
-    doSpeak();
-  }, 500);
+  audio.play().catch((err) => {
+    console.warn("speakSerbian: audio playback failed", err);
+  });
 }

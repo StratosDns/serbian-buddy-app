@@ -37,19 +37,13 @@ describe("cleanSpeakText", () => {
 });
 
 describe("prepareSerbianSpeechText", () => {
-  it("keeps Serbian latin diacritics when Serbian voice is available", () => {
-    expect(prepareSerbianSpeechText("Želim da pričam srpski", true)).toBe(
+  it("keeps Serbian latin diacritics as-is", () => {
+    expect(prepareSerbianSpeechText("Želim da pričam srpski")).toBe(
       "Želim da pričam srpski"
     );
   });
 
-  it("transliterates cyrillic first, then keeps letters when Serbian voice is available", () => {
-    expect(prepareSerbianSpeechText("Ћао", true)).toBe("Ćao");
-  });
-
-  it("replaces Serbian-specific latin letters with pronounceable fallback when Serbian voice is unavailable", () => {
-    expect(prepareSerbianSpeechText("žđšćč dž nj lj", false)).toBe(
-      "zhdjshchch j ny ly"
-    );
+  it("transliterates Cyrillic to Latin", () => {
+    expect(prepareSerbianSpeechText("Ћао")).toBe("Ćao");
   });
 });
