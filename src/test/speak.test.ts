@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanSpeakText, resolveSpeechVoice } from "@/lib/speak";
+import { cleanSpeakText, prepareSerbianSpeechText, resolveSpeechVoice } from "@/lib/speak";
 
 describe("cleanSpeakText", () => {
   it("keeps plain Serbian text unchanged", () => {
@@ -57,5 +57,17 @@ describe("resolveSpeechVoice", () => {
 
   it("returns null when no voices are available", () => {
     expect(resolveSpeechVoice([])).toBeNull();
+  });
+});
+
+describe("prepareSerbianSpeechText", () => {
+  it("keeps Serbian letters when Serbian voice exists", () => {
+    expect(prepareSerbianSpeechText("Želim da pričam srpski", true)).toBe(
+      "Želim da pričam srpski"
+    );
+  });
+
+  it("falls back special Serbian letters when Serbian voice is missing", () => {
+    expect(prepareSerbianSpeechText("žđšćč dž", false)).toBe("zhdjshchch j");
   });
 });

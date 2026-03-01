@@ -1,6 +1,26 @@
 import { hasCyrillic, toLatin } from "@/lib/transliterate";
 
+const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
+  [/Dž/g, "J"],
+  [/dž/g, "j"],
+  [/Lj/g, "Ly"],
+  [/lj/g, "ly"],
+  [/Nj/g, "Ny"],
+  [/nj/g, "ny"],
+  [/Đ/g, "Dj"],
+  [/đ/g, "dj"],
+  [/Č/g, "Ch"],
+  [/č/g, "ch"],
+  [/Ć/g, "Ch"],
+  [/ć/g, "ch"],
+  [/Š/g, "Sh"],
+  [/š/g, "sh"],
+  [/Ž/g, "Zh"],
+  [/ž/g, "zh"],
+];
+
 let retryTimeoutId: number | null = null;
+let startTimeoutId: number | null = null;
 let speechRequestId = 0;
 
 export function cleanSpeakText(text: string): string {
@@ -23,11 +43,31 @@ export function cleanSpeakText(text: string): string {
   return cleaned;
 }
 
+function toSerbianSpeechFallback(latinText: string): string {
+  return SERBIAN_LATIN_FALLBACK_MAP.reduce((result, [pattern, replacement]) => {
+    return result.replace(pattern, replacement);
+  }, latinText);
+}
+
 export function resolveSpeechVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   const serbianVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("sr"));
   if (serbianVoice) return serbianVoice;
 
   return voices.find((voice) => voice.default) ?? voices[0] ?? null;
+}
+
+export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean): string {
+  const cleaned = cleanSpeakText(text);
+  const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
+  if (!latinText) {
+    return;
+  }
+
+  if (hasSerbianVoice) {
+    return latinText;
+  }
+
+  return toSerbianSpeechFallback(latinText);
 }
 
 function buildUtterance(text: string, voice: SpeechSynthesisVoice | null): SpeechSynthesisUtterance {
@@ -39,7 +79,6 @@ function buildUtterance(text: string, voice: SpeechSynthesisVoice | null): Speec
     utterance.voice = voice;
     utterance.lang = voice.lang;
   } else {
-    // Use a broadly available language if no voice info is available yet.
     utterance.lang = "en-US";
   }
 
@@ -52,37 +91,49 @@ export function speakSerbian(text: string): void {
   }
 
   const synth = window.speechSynthesis;
-
-  if (synth.paused) {
-    synth.resume();
-  }
-
-  const cleaned = cleanSpeakText(text);
-  const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
-  if (!latinText) {
-    return;
-  }
+  const requestId = ++speechRequestId;
 
   if (retryTimeoutId) {
     window.clearTimeout(retryTimeoutId);
     retryTimeoutId = null;
   }
 
-  const requestId = ++speechRequestId;
-  const voice = resolveSpeechVoice(synth.getVoices());
+  if (startTimeoutId) {
+    window.clearTimeout(startTimeoutId);
+    startTimeoutId = null;
+  }
+
+  if (synth.paused) {
+    synth.resume();
+  }
+
+  const voices = synth.getVoices();
+  const voice = resolveSpeechVoice(voices);
+  const hasSerbianVoice = Boolean(voice?.lang.toLowerCase().startsWith("sr"));
+  const speechText = prepareSerbianSpeechText(text, hasSerbianVoice);
+
+  if (!speechText) {
+    return;
+  }
 
   const speakNow = () => {
-    // Interrupt ongoing playback so each click always plays immediately.
-    if (synth.speaking || synth.pending) {
-      synth.cancel();
+    if (requestId !== speechRequestId) {
+      return;
     }
 
-    synth.speak(buildUtterance(latinText, voice));
+    synth.speak(buildUtterance(speechText, voice));
   };
 
-  speakNow();
+  // Cancel ongoing queue/speech, then start slightly after to avoid race conditions
+  // where engines ignore immediate speak() right after cancel().
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+    startTimeoutId = window.setTimeout(speakNow, 35);
+  } else {
+    speakNow();
+  }
 
-  // Some engines occasionally drop the first attempt; retry once for the latest request only.
+  // Retry once only for the latest request if nothing actually started.
   retryTimeoutId = window.setTimeout(() => {
     if (requestId !== speechRequestId) {
       return;
@@ -92,6 +143,7 @@ export function speakSerbian(text: string): void {
       return;
     }
 
-    synth.speak(buildUtterance(latinText, voice));
-  }, 180);
+    synth.cancel();
+    synth.speak(buildUtterance(speechText, voice));
+  }, 220);
 }
