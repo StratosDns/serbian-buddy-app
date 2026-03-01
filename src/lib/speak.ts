@@ -20,6 +20,7 @@ const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
 ];
 
 let retryTimeoutId: number | null = null;
+let keepAliveId: number | null = null;
 let speechRequestId = 0;
 
 export function cleanSpeakText(text: string): string {
@@ -89,6 +90,35 @@ function buildUtterance(
   return utterance;
 }
 
+/**
+ * Chrome has a long-standing bug where speechSynthesis stops working after
+ * the first utterance. Two workarounds are combined here:
+ *
+ * 1. **Keep-alive timer** — While speech is active, periodically call
+ *    `synth.pause()` then `synth.resume()` every 5 seconds. This prevents
+ *    Chrome from internally "timing out" the speech session.
+ *
+ * 2. **onend cleanup** — When an utterance finishes, we explicitly cancel
+ *    the synth and clear all timers so the engine is in a clean idle state
+ *    ready for the next request.
+ */
+function startKeepAlive(synth: SpeechSynthesis): void {
+  stopKeepAlive();
+  keepAliveId = window.setInterval(() => {
+    if (synth.speaking) {
+      synth.pause();
+      synth.resume();
+    }
+  }, 5000);
+}
+
+function stopKeepAlive(): void {
+  if (keepAliveId !== null) {
+    window.clearInterval(keepAliveId);
+    keepAliveId = null;
+  }
+}
+
 export function speakSerbian(text: string): void {
   if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
     return;
@@ -97,15 +127,16 @@ export function speakSerbian(text: string): void {
   const synth = window.speechSynthesis;
   const requestId = ++speechRequestId;
 
+  // Clear any pending retry
   if (retryTimeoutId) {
     window.clearTimeout(retryTimeoutId);
     retryTimeoutId = null;
   }
 
-  // Always cancel + resume to fully reset the engine (Chrome bug workaround).
-  // Chrome's speechSynthesis gets stuck after the first utterance completes;
-  // cancel() alone isn't enough — we need to let the event loop turn before
-  // queuing a new utterance.
+  // Stop any previous keep-alive
+  stopKeepAlive();
+
+  // Always fully reset the engine before speaking
   synth.cancel();
 
   const voices = synth.getVoices();
@@ -113,22 +144,37 @@ export function speakSerbian(text: string): void {
   const fallbackVoice = voices.find((voice) => voice.default) ?? voices[0] ?? null;
   const speechText = prepareSerbianSpeechText(text, Boolean(serbianVoice));
 
-  const speakNow = () => {
+  const doSpeak = () => {
     if (requestId !== speechRequestId) return;
+
+    // Cancel again right before speaking to ensure clean state
+    synth.cancel();
+
     const utterance = buildUtterance(speechText, serbianVoice, fallbackVoice);
+
+    // When speech ends (or errors), clean up so the next call works
+    utterance.onend = () => {
+      stopKeepAlive();
+    };
+    utterance.onerror = () => {
+      stopKeepAlive();
+    };
+
+    // Start the keep-alive timer to prevent Chrome from killing the session
+    startKeepAlive(synth);
+
     synth.speak(utterance);
   };
 
-  // Delay speak after cancel() so the engine has time to fully reset.
-  // Without this, Chrome silently drops the new utterance.
-  window.setTimeout(speakNow, 50);
+  // Use a setTimeout to let the cancel() above fully propagate
+  window.setTimeout(doSpeak, 100);
 
-  // If the engine still drops this attempt, retry once.
+  // Safety retry: if the engine silently dropped the utterance, try again
   retryTimeoutId = window.setTimeout(() => {
     if (requestId !== speechRequestId) return;
     if (synth.speaking || synth.pending) return;
 
-    synth.cancel();
-    window.setTimeout(speakNow, 50);
-  }, 300);
+    // Engine dropped it — try once more
+    doSpeak();
+  }, 500);
 }
