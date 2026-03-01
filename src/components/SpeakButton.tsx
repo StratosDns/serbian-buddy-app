@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Volume2, Volume1 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toPhoneticEnglish } from "@/lib/serbianPhonetics";
 
 interface SpeakButtonProps {
   text: string;
@@ -23,8 +24,9 @@ const SpeakButton = ({ text }: SpeakButtonProps) => {
       window.speechSynthesis.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "sr-RS";
+    const phoneticText = toPhoneticEnglish(text);
+    const utterance = new SpeechSynthesisUtterance(phoneticText);
+    utterance.lang = "en-US";
     utterance.rate = 0.85;
 
     utterance.onstart = () => setIsSpeaking(true);
