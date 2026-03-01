@@ -62,9 +62,20 @@ export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean)
 }
 
 export function speakSerbian(text: string): void {
-  window.speechSynthesis.cancel();
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+    return;
+  }
 
-  const voices = window.speechSynthesis.getVoices();
+  const synth = window.speechSynthesis;
+
+  if (synth.paused) {
+    synth.resume();
+  }
+
+  // Reset current playback so repeated clicks replay reliably.
+  synth.cancel();
+
+  const voices = synth.getVoices();
   const serbianVoice = pickSerbianVoice(voices);
   const speechText = prepareSerbianSpeechText(text, Boolean(serbianVoice));
 
@@ -77,5 +88,8 @@ export function speakSerbian(text: string): void {
     utterance.voice = serbianVoice;
   }
 
-  window.speechSynthesis.speak(utterance);
+  // Some engines ignore `speak()` immediately after `cancel()`, so defer slightly.
+  window.setTimeout(() => {
+    synth.speak(utterance);
+  }, 25);
 }
