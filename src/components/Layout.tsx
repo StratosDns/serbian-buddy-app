@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { BookOpen, Languages, GraduationCap, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import PronunciationBox from "@/components/PronunciationBox";
 import UserMenu from "@/components/UserMenu";
 
 const navItems = [
@@ -101,7 +100,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       <main>{children}</main>
 
-      <PronunciationBox />
 
       <footer className="border-t border-border bg-muted/50 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
