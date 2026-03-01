@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanSpeakText } from "@/lib/speak";
+import { cleanSpeakText, prepareSerbianSpeechText } from "@/lib/speak";
 
 describe("cleanSpeakText", () => {
   it("keeps plain Serbian text unchanged", () => {
@@ -33,5 +33,23 @@ describe("cleanSpeakText", () => {
 
   it("handles dual-script text that also has parenthetical content", () => {
     expect(cleanSpeakText("Извини / Izvini (Excuse me)")).toBe("Извини");
+  });
+});
+
+describe("prepareSerbianSpeechText", () => {
+  it("keeps Serbian latin diacritics when Serbian voice is available", () => {
+    expect(prepareSerbianSpeechText("Želim da pričam srpski", true)).toBe(
+      "Želim da pričam srpski"
+    );
+  });
+
+  it("transliterates cyrillic first, then keeps letters when Serbian voice is available", () => {
+    expect(prepareSerbianSpeechText("Ћао", true)).toBe("Ćao");
+  });
+
+  it("replaces Serbian-specific latin letters with pronounceable fallback when Serbian voice is unavailable", () => {
+    expect(prepareSerbianSpeechText("žđšćč dž nj lj", false)).toBe(
+      "zhdjshchch j ny ly"
+    );
   });
 });
