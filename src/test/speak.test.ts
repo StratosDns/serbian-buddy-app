@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanSpeakText, prepareSerbianSpeechText } from "@/lib/speak";
+import { cleanSpeakText, resolveSpeechVoice } from "@/lib/speak";
 
 describe("cleanSpeakText", () => {
   it("keeps plain Serbian text unchanged", () => {
@@ -36,14 +36,22 @@ describe("cleanSpeakText", () => {
   });
 });
 
-describe("prepareSerbianSpeechText", () => {
-  it("keeps Serbian latin diacritics as-is", () => {
-    expect(prepareSerbianSpeechText("Želim da pričam srpski")).toBe(
-      "Želim da pričam srpski"
-    );
+describe("resolveSpeechVoice", () => {
+  it("prefers a Serbian voice when available", () => {
+    const voices = [
+      { lang: "en-US", default: true },
+      { lang: "sr-RS", default: false },
+    ] as SpeechSynthesisVoice[];
+
+    expect(resolveSpeechVoice(voices)?.lang).toBe("sr-RS");
   });
 
-  it("transliterates Cyrillic to Latin", () => {
-    expect(prepareSerbianSpeechText("Ћао")).toBe("Ćao");
+  it("falls back to default voice when Serbian voice is missing", () => {
+    const voices = [
+      { lang: "en-US", default: true },
+      { lang: "de-DE", default: false },
+    ] as SpeechSynthesisVoice[];
+
+    expect(resolveSpeechVoice(voices)?.lang).toBe("en-US");
   });
 });
