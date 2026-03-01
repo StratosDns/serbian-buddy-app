@@ -59,6 +59,9 @@ export function resolveSpeechVoice(voices: SpeechSynthesisVoice[]): SpeechSynthe
 export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean): string {
   const cleaned = cleanSpeakText(text);
   const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
+  if (!latinText) {
+    return;
+  }
 
   if (hasSerbianVoice) {
     return latinText;
