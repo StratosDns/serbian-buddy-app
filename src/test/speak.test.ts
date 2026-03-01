@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanSpeakText, resolveSpeechVoice } from "@/lib/speak";
+import { cleanSpeakText, resolveSpeechVoice, normalizeSerbianLatin } from "@/lib/speak";
 
 describe("cleanSpeakText", () => {
   it("keeps plain Serbian text unchanged", () => {
@@ -53,5 +53,42 @@ describe("resolveSpeechVoice", () => {
     ] as SpeechSynthesisVoice[];
 
     expect(resolveSpeechVoice(voices)?.lang).toBe("en-US");
+  });
+});
+
+describe("normalizeSerbianLatin", () => {
+  it("converts š to sh and Š to Sh", () => {
+    expect(normalizeSerbianLatin("šta")).toBe("shta");
+    expect(normalizeSerbianLatin("Šta")).toBe("Shta");
+  });
+
+  it("converts č to ch and Č to Ch", () => {
+    expect(normalizeSerbianLatin("čaj")).toBe("chaj");
+    expect(normalizeSerbianLatin("Čaj")).toBe("Chaj");
+  });
+
+  it("converts ž to zh and Ž to Zh", () => {
+    expect(normalizeSerbianLatin("žena")).toBe("zhena");
+    expect(normalizeSerbianLatin("Žena")).toBe("Zhena");
+  });
+
+  it("converts đ to dj and Đ to Dj", () => {
+    expect(normalizeSerbianLatin("đak")).toBe("djak");
+    expect(normalizeSerbianLatin("Đak")).toBe("Djak");
+  });
+
+  it("converts ć to ty and Ć to Ty", () => {
+    expect(normalizeSerbianLatin("ćup")).toBe("tyup");
+    expect(normalizeSerbianLatin("Ćup")).toBe("Tyup");
+  });
+
+  it("leaves plain ASCII text unchanged", () => {
+    expect(normalizeSerbianLatin("dobro jutro")).toBe("dobro jutro");
+  });
+
+  it("handles mixed special and plain characters", () => {
+    expect(normalizeSerbianLatin("Hvala lepo")).toBe("Hvala lepo");
+    expect(normalizeSerbianLatin("Izvinjavam se")).toBe("Izvinjavam se");
+    expect(normalizeSerbianLatin("šuma i čajnik")).toBe("shuma i chajnik");
   });
 });
