@@ -19,10 +19,6 @@ const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
   [/ž/g, "zh"],
 ];
 
-let retryTimeoutId: number | null = null;
-let startTimeoutId: number | null = null;
-let speechRequestId = 0;
-
 export function cleanSpeakText(text: string): string {
   let cleaned = text;
 
@@ -70,19 +66,11 @@ export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean)
   return toSerbianSpeechFallback(latinText);
 }
 
-function buildUtterance(text: string, voice: SpeechSynthesisVoice | null): SpeechSynthesisUtterance {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.85;
-  utterance.pitch = 1;
-
-  if (voice) {
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
-  } else {
-    utterance.lang = "en-US";
+  if (hasSerbianVoice) {
+    return latinText;
   }
 
-  return utterance;
+  return toSerbianSpeechFallback(latinText);
 }
 
 export function speakSerbian(text: string): void {
@@ -91,24 +79,13 @@ export function speakSerbian(text: string): void {
   }
 
   const synth = window.speechSynthesis;
-  const requestId = ++speechRequestId;
 
-  if (retryTimeoutId) {
-    window.clearTimeout(retryTimeoutId);
-    retryTimeoutId = null;
-  }
-
-  if (startTimeoutId) {
-    window.clearTimeout(startTimeoutId);
-    startTimeoutId = null;
-  }
-
+  // Keep the engine active if it was previously paused by the browser.
   if (synth.paused) {
     synth.resume();
   }
 
-  const voices = synth.getVoices();
-  const voice = resolveSpeechVoice(voices);
+  const voice = resolveSpeechVoice(synth.getVoices());
   const hasSerbianVoice = Boolean(voice?.lang.toLowerCase().startsWith("sr"));
   const speechText = prepareSerbianSpeechText(text, hasSerbianVoice);
 
@@ -116,34 +93,19 @@ export function speakSerbian(text: string): void {
     return;
   }
 
-  const speakNow = () => {
-    if (requestId !== speechRequestId) {
-      return;
-    }
+  // Return to the previously stable behavior: explicit reset then immediate play.
+  synth.cancel();
 
-    synth.speak(buildUtterance(speechText, voice));
-  };
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.rate = 0.85;
+  utterance.pitch = 1;
 
-  // Cancel ongoing queue/speech, then start slightly after to avoid race conditions
-  // where engines ignore immediate speak() right after cancel().
-  if (synth.speaking || synth.pending) {
-    synth.cancel();
-    startTimeoutId = window.setTimeout(speakNow, 35);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
   } else {
-    speakNow();
+    utterance.lang = hasSerbianVoice ? "sr-RS" : "en-US";
   }
 
-  // Retry once only for the latest request if nothing actually started.
-  retryTimeoutId = window.setTimeout(() => {
-    if (requestId !== speechRequestId) {
-      return;
-    }
-
-    if (synth.speaking || synth.pending) {
-      return;
-    }
-
-    synth.cancel();
-    synth.speak(buildUtterance(speechText, voice));
-  }, 220);
+  synth.speak(utterance);
 }
