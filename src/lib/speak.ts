@@ -20,16 +20,44 @@ export function cleanSpeakText(text: string): string {
   return cleaned;
 }
 
+export function resolveSpeechVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  const serbianVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("sr"));
+  if (serbianVoice) return serbianVoice;
+
+  return voices.find((voice) => voice.default) ?? voices[0] ?? null;
+}
+
 export function speakSerbian(text: string): void {
-  window.speechSynthesis.cancel();
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+    return;
+  }
+
+  const synth = window.speechSynthesis;
 
   const cleaned = cleanSpeakText(text);
   const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
+  if (!latinText) {
+    return;
+  }
+
+  const voice = resolveSpeechVoice(synth.getVoices());
+
+  // Cancel only when active, avoiding flaky behavior in some engines when idle.
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+  }
 
   const utterance = new SpeechSynthesisUtterance(latinText);
-  utterance.lang = "sr-RS";
   utterance.rate = 0.85;
   utterance.pitch = 1;
 
-  window.speechSynthesis.speak(utterance);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  } else {
+    // Use a broadly available language if no voice info is available yet.
+    utterance.lang = "en-US";
+  }
+
+  synth.speak(utterance);
 }
