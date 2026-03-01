@@ -235,7 +235,7 @@ export function SerbianKeyboardAssist() {
         </div>
       )}
 
-      <div className="fixed bottom-20 right-4 z-50 flex items-end gap-2">
+      <div className="fixed bottom-5 right-15 z-50 flex items-end gap-2">
         {open && (
           <div className="rounded-2xl border bg-background/95 p-3 shadow-xl backdrop-blur">
             <div className="grid grid-cols-5 gap-2">
