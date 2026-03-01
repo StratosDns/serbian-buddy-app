@@ -1,5 +1,7 @@
 import { hasCyrillic, toLatin } from "@/lib/transliterate";
 
+let currentAudio: HTMLAudioElement | null = null;
+
 export function cleanSpeakText(text: string): string {
   let cleaned = text;
 
