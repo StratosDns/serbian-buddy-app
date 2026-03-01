@@ -47,7 +47,7 @@ const phoneticMap: [string, string][] = [
   ["đze","djeh"],  ["Đze", "Djeh"], ["ĐZE", "DZEH"],
   ["noć", "nots"], ["Noć", "Nots"], ["NOĆ", "NOTS"],
   ["nja", "nyah"], ["Nja", "Nyah"], ["NJA", "NYAH"],
-  ["ćao", "tchaoh"], ["Ćao", "Tchaoh"], ["ĆAO", "TCHAOH"],
+  ["ćao", "tchaHoh"], ["Ćao", "TchaHoh"], ["ĆAO", "TCHAhOH"],
   ["lj", "lyuh"], ["Lj", "Lyuh"], ["LJ", "LYUH"],
   ["nj", "ny"],   ["Nj", "Ny"],   ["NJ", "NY"],
   ["dž", "j"],    ["Dž", "J"],    ["DŽ", "J"],
