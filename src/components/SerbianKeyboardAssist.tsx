@@ -93,10 +93,20 @@ export function SerbianKeyboardAssist() {
   const [quickOptions, setQuickOptions] = useState<QuickOption[]>([]);
   const [quickPosition, setQuickPosition] = useState({ left: 0, top: 0 });
   const hideTimeoutRef = useRef<number | null>(null);
+  const activeTargetRef = useRef<TextTarget | null>(null);
+  const quickOptionsRef = useRef<QuickOption[]>([]);
 
   const hasTarget = Boolean(activeTarget);
 
   const quickVisible = useMemo(() => quickOptions.length > 0 && hasTarget, [quickOptions.length, hasTarget]);
+
+  useEffect(() => {
+    activeTargetRef.current = activeTarget;
+  }, [activeTarget]);
+
+  useEffect(() => {
+    quickOptionsRef.current = quickOptions;
+  }, [quickOptions]);
 
   useEffect(() => {
     const onFocusIn = (event: FocusEvent) => {
@@ -144,7 +154,7 @@ export function SerbianKeyboardAssist() {
       const rect = event.target.getBoundingClientRect();
       setQuickPosition({
         left: rect.left + rect.width / 2,
-        top: rect.top - 10,
+        top: rect.bottom + 10,
       });
       setQuickOptions(mappedOptions);
 
@@ -154,14 +164,31 @@ export function SerbianKeyboardAssist() {
       hideTimeoutRef.current = window.setTimeout(() => setQuickOptions([]), 2500);
     };
 
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+
+      const focusedTarget = activeTargetRef.current;
+      const availableOptions = quickOptionsRef.current;
+
+      if (!focusedTarget || availableOptions.length === 0) {
+        return;
+      }
+
+      event.preventDefault();
+      replaceCharacterBeforeCursor(focusedTarget, availableOptions[0].base, availableOptions[0].value);
+      setQuickOptions([]);
+    };
+
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
     document.addEventListener("input", onInput, true);
+    document.addEventListener("keydown", onKeyDown, true);
 
     return () => {
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
       document.removeEventListener("input", onInput, true);
+      document.removeEventListener("keydown", onKeyDown, true);
       if (hideTimeoutRef.current) {
         window.clearTimeout(hideTimeoutRef.current);
       }
@@ -187,7 +214,7 @@ export function SerbianKeyboardAssist() {
           style={{
             left: quickPosition.left,
             top: quickPosition.top,
-            transform: "translate(-50%, -100%)",
+            transform: "translate(-50%, 0)",
           }}
         >
           <div className="pointer-events-auto flex items-center gap-1 rounded-full border bg-background/95 px-2 py-1 shadow-lg backdrop-blur">
@@ -208,7 +235,7 @@ export function SerbianKeyboardAssist() {
         </div>
       )}
 
-      <div className="fixed bottom-20 right-4 z-50 flex items-end gap-2">
+      <div className="fixed bottom-5 right-5 z-50 flex items-end gap-2">
         {open && (
           <div className="rounded-2xl border bg-background/95 p-3 shadow-xl backdrop-blur">
             <div className="grid grid-cols-5 gap-2">
