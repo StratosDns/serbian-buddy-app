@@ -102,15 +102,11 @@ export function speakSerbian(text: string): void {
     retryTimeoutId = null;
   }
 
-  if (synth.paused) {
-    synth.resume();
-  }
-
-  // Only cancel when there is active/pending speech, since canceling while idle can
-  // make some engines flaky for immediate subsequent speaks.
-  if (synth.speaking || synth.pending) {
-    synth.cancel();
-  }
+  // Always cancel + resume to fully reset the engine (Chrome bug workaround).
+  // Chrome's speechSynthesis gets stuck after the first utterance completes;
+  // cancel() alone isn't enough — we need to let the event loop turn before
+  // queuing a new utterance.
+  synth.cancel();
 
   const voices = synth.getVoices();
   const serbianVoice = pickSerbianVoice(voices);
@@ -118,22 +114,21 @@ export function speakSerbian(text: string): void {
   const speechText = prepareSerbianSpeechText(text, Boolean(serbianVoice));
 
   const speakNow = () => {
+    if (requestId !== speechRequestId) return;
     const utterance = buildUtterance(speechText, serbianVoice, fallbackVoice);
     synth.speak(utterance);
   };
 
-  speakNow();
+  // Delay speak after cancel() so the engine has time to fully reset.
+  // Without this, Chrome silently drops the new utterance.
+  window.setTimeout(speakNow, 50);
 
-  // If an engine drops this attempt, retry once for the latest request only.
+  // If the engine still drops this attempt, retry once.
   retryTimeoutId = window.setTimeout(() => {
-    if (requestId !== speechRequestId) {
-      return;
-    }
+    if (requestId !== speechRequestId) return;
+    if (synth.speaking || synth.pending) return;
 
-    if (synth.speaking || synth.pending) {
-      return;
-    }
-
-    speakNow();
-  }, 180);
+    synth.cancel();
+    window.setTimeout(speakNow, 50);
+  }, 300);
 }
