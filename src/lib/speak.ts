@@ -88,8 +88,17 @@ export function speakSerbian(text: string): void {
     utterance.voice = serbianVoice;
   }
 
-  // Some engines ignore `speak()` immediately after `cancel()`, so defer slightly.
+  // Speak synchronously inside the click handler to preserve user-activation context.
+  synth.speak(utterance);
+
+  // Some engines may still drop immediate replay after `cancel()`. If that happens,
+  // retry once shortly after.
   window.setTimeout(() => {
+    if (synth.speaking || synth.pending) {
+      return;
+    }
+
+    synth.cancel();
     synth.speak(utterance);
-  }, 25);
+  }, 120);
 }
