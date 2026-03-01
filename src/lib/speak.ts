@@ -45,7 +45,33 @@ export function hasSerbianVoice(voices: SpeechSynthesisVoice[]): boolean {
 
 export function prepareSerbianSpeechText(text: string, shouldFallback: boolean): string {
   const cleaned = cleanSpeakText(text);
-  const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
+  const latin = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
+
+  if (hasSerbianVoice) {
+    return latin;
+  }
+
+  return applyFallbackPronunciation(latin);
+}
+
+export function speakSerbian(text: string): void {
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+
+  if (synth.paused) {
+    synth.resume();
+  }
+
+  const voice = resolveSpeechVoice(synth.getVoices());
+  const hasSerbianVoice = Boolean(voice?.lang.toLowerCase().startsWith("sr"));
+  const speechText = prepareSerbianSpeechText(text, hasSerbianVoice);
+
+  if (!speechText) {
+    return;
+  }
 
   if (!shouldFallback) {
     return latinText;
