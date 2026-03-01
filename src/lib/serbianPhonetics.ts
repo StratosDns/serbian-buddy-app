@@ -44,7 +44,6 @@ const applyCyrillicToLatin = buildCyrillicReplacer(cyrillicToLatinMap);
 // Multi-character and single-character phonetic mapping (order matters — multi-char first)
 const phoneticMap: [string, string][] = [
   ["veće", "vetcheh"], ["Veće", "Vetcheh"], ["VEČE", "VECTHEH"],
-  ["đze","djeh"],  ["Đze", "Djeh"], ["ĐZE", "DZEH"],
   ["ete ", "et"], ["ETE ", "ET"],
   ["noć", "nots"], ["Noć", "Nots"], ["NOĆ", "NOTS"],
   ["nja", "nyah"], ["Nja", "Nyah"], ["NJA", "NYAH"],
@@ -54,6 +53,7 @@ const phoneticMap: [string, string][] = [
   ["dž", "j"],    ["Dž", "J"],    ["DŽ", "J"],
   ["se", "seh"], ["SE", "SEH"], ["Se", "Seh"],
   ["la","lah"],   ["La","Lah"],
+  ["đe","djeh"],  ["Đe", "Djeh"], ["ĐE", "DZEH"],
   ["č", "ch"],    ["Č", "Ch"],
   ["ć", "ch"],    ["Ć", "Ch"],
   ["š", "sh"],    ["Š", "Sh"],
