@@ -1,5 +1,6 @@
 import { serbianAlphabet } from "@/data/alphabet";
 import Layout from "@/components/Layout";
+import SpeakButton from "@/components/SpeakButton";
 import { motion } from "framer-motion";
 
 const Alphabet = () => {
@@ -41,9 +42,12 @@ const Alphabet = () => {
                     <span className="text-sm text-muted-foreground">/ {letter.latin}</span>
                   </div>
                   <p className="text-sm text-accent font-medium">{letter.sound}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    <span className="font-semibold">{letter.example}</span> — {letter.exampleTranslation}
-                  </p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-semibold">{letter.example}</span> — {letter.exampleTranslation}
+                    </p>
+                    <SpeakButton text={letter.example} />
+                  </div>
                 </div>
               </div>
             </motion.div>

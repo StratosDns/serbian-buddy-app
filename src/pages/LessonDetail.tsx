@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { lessons, levelLabels, levelColors } from "@/data/lessons";
 import Layout from "@/components/Layout";
 import LessonQuiz from "@/components/LessonQuiz";
+import SpeakButton from "@/components/SpeakButton";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, CheckCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -108,12 +109,15 @@ const LessonDetail = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 {lesson.vocabulary.map((item, i) => (
                   <div key={i} className="rounded-xl border border-border bg-card p-4">
-                    <div>
-                      <p className="font-display font-bold text-foreground text-lg leading-tight">
-                        {renderSerbian(item.cyrillic, item.latin)}
-                      </p>
-                      <p className="text-sm text-foreground">{item.english}</p>
-                      <p className="text-xs text-muted-foreground italic mt-0.5">{item.pronunciation}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display font-bold text-foreground text-lg leading-tight">
+                          {renderSerbian(item.cyrillic, item.latin)}
+                        </p>
+                        <p className="text-sm text-foreground">{item.english}</p>
+                        <p className="text-xs text-muted-foreground italic mt-0.5">{item.pronunciation}</p>
+                      </div>
+                      <SpeakButton text={item.latin} />
                     </div>
                   </div>
                 ))}
@@ -130,6 +134,7 @@ const LessonDetail = () => {
                       <p className="font-display text-lg font-bold text-foreground flex-1">
                         {renderSerbian(phrase.cyrillic, phrase.latin)}
                       </p>
+                      <SpeakButton text={phrase.latin} />
                     </div>
                     <p className="text-sm text-foreground mt-1">{phrase.english}</p>
                     <p className="text-xs text-muted-foreground italic mt-1">{phrase.pronunciation}</p>
