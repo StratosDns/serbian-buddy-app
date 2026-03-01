@@ -1,6 +1,6 @@
 import { hasCyrillic, toLatin } from "@/lib/transliterate";
 
-const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
+const SERBIAN_FALLBACK_REPLACEMENTS: Array<[RegExp, string]> = [
   [/Dž/g, "J"],
   [/dž/g, "j"],
   [/Lj/g, "Ly"],
@@ -9,64 +9,56 @@ const SERBIAN_LATIN_FALLBACK_MAP: Array<[RegExp, string]> = [
   [/nj/g, "ny"],
   [/Đ/g, "Dj"],
   [/đ/g, "dj"],
+  [/Ž/g, "Zh"],
+  [/ž/g, "zh"],
+  [/Š/g, "Sh"],
+  [/š/g, "sh"],
   [/Č/g, "Ch"],
   [/č/g, "ch"],
   [/Ć/g, "Ch"],
   [/ć/g, "ch"],
-  [/Š/g, "Sh"],
-  [/š/g, "sh"],
-  [/Ž/g, "Zh"],
-  [/ž/g, "zh"],
 ];
 
 export function cleanSpeakText(text: string): string {
   let cleaned = text;
 
-  // If text contains " / " dual-script separator, keep only the first part
   if (cleaned.includes(" / ")) {
     cleaned = cleaned.split(" / ")[0];
   }
 
-  // Remove parenthetical content (e.g. English translations like "(This is my book.)")
   cleaned = cleaned.replace(/\([^)]*\)/g, "");
-
-  // Remove blank placeholders (sequences of underscores)
   cleaned = cleaned.replace(/_+/g, "");
-
-  // Collapse multiple spaces and trim
   cleaned = cleaned.replace(/\s+/g, " ").trim();
 
   return cleaned;
 }
 
-function toSerbianSpeechFallback(latinText: string): string {
-  return SERBIAN_LATIN_FALLBACK_MAP.reduce((result, [pattern, replacement]) => {
+function applyFallbackPronunciation(text: string): string {
+  return SERBIAN_FALLBACK_REPLACEMENTS.reduce((result, [pattern, replacement]) => {
     return result.replace(pattern, replacement);
-  }, latinText);
+  }, text);
 }
 
 export function resolveSpeechVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   const serbianVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("sr"));
-  if (serbianVoice) return serbianVoice;
+  if (serbianVoice) {
+    return serbianVoice;
+  }
 
-  return voices.find((voice) => voice.default) ?? voices[0] ?? null;
+  const defaultVoice = voices.find((voice) => voice.default);
+  return defaultVoice ?? voices[0] ?? null;
 }
 
 export function prepareSerbianSpeechText(text: string, hasSerbianVoice: boolean): string {
   const cleaned = cleanSpeakText(text);
-  const latinText = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
-  if (!latinText) {
-    return;
-  }
+  const latin = hasCyrillic(cleaned) ? toLatin(cleaned) : cleaned;
 
   if (hasSerbianVoice) {
-    return latinText;
+    return latin;
   }
 
-  return toSerbianSpeechFallback(latinText);
+  return applyFallbackPronunciation(latin);
 }
-
-
 
 export function speakSerbian(text: string): void {
   if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
@@ -75,7 +67,6 @@ export function speakSerbian(text: string): void {
 
   const synth = window.speechSynthesis;
 
-  // Keep the engine active if it was previously paused by the browser.
   if (synth.paused) {
     synth.resume();
   }
@@ -88,9 +79,6 @@ export function speakSerbian(text: string): void {
     return;
   }
 
-  // Return to the previously stable behavior: explicit reset then immediate play.
-  synth.cancel();
-
   const utterance = new SpeechSynthesisUtterance(speechText);
   utterance.rate = 0.85;
   utterance.pitch = 1;
@@ -99,8 +87,9 @@ export function speakSerbian(text: string): void {
     utterance.voice = voice;
     utterance.lang = voice.lang;
   } else {
-    utterance.lang = hasSerbianVoice ? "sr-RS" : "en-US";
+    utterance.lang = "en-US";
   }
 
+  synth.cancel();
   synth.speak(utterance);
 }
